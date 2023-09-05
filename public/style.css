@@ -1,0 +1,17 @@
+body {
+    margin: 0;
+   
+   
+}
+
+
+#overlay {
+    flex-direction: column;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 5%;
+    height: 20%;
+    display: flex;
+    background-color: rgb(240, 8, 8);
+}
