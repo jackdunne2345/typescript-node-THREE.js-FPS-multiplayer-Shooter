@@ -6,8 +6,8 @@ const moveSpeed = 0.25;
 let isJumping = false;
 let verticalVelocity = 0;
 let player = new Player(0, 0, 0, 100);
-let player2 = new Player(0, 1, -10, 100);
-let player3 = new Player(0, 1, -20, 100);
+let player2 = new Player(0, 1, -80, 100);
+let player3 = new Player(0, 1, -30, 100);
 let player4 = new Player(0, 1, -30, 100);
 let player2Model;
 let player3Model;
@@ -76,23 +76,6 @@ plane.rotateX(-1.570796);
 const light = new THREE.AmbientLight(0x404040); // soft white light
 scene.add(light);
 const gltf_Loader = new GLTFLoader();
-//pistol gemoetry, material and mesh
-gltf_Loader.load('/assets/models/pistol.glb', (gltf) => {
-    weapon = gltf.scene;
-    scene.add(weapon);
-});
-//player model geometry
-gltf_Loader.load('/assets/models/player.glb', (gltf) => {
-    player2Model = gltf.scene;
-    player3Model = gltf.scene;
-    player4Model = gltf.scene;
-    player2Model.scale.set(0.1, 0.1, 0.1);
-    player3Model.scale.set(0.1, 0.1, 0.1);
-    player4Model.scale.set(0.1, 0.1, 0.1);
-    scene.add(player2Model);
-    scene.add(player3Model);
-    scene.add(player4Model);
-});
 // keps track of button presses to trigger actions 
 let keys = {};
 document.addEventListener('keydown', (event) => {
@@ -157,7 +140,7 @@ function updateObjectPosition() {
     const offsetVector = cameraRight.clone().multiplyScalar(offsetX);
     const newPosition = cameraPosition.clone().add(cameraDirection.clone().multiplyScalar(distanceFromCamera)).add(offsetVector);
     // Set the object's position
-    //weapon.position.copy(newPosition);
+    weapon.position.copy(newPosition);
     weapon.rotation.copy(camera.rotation);
 }
 //create a blue LineBasicMaterial
@@ -169,6 +152,29 @@ function updateObjectPosition() {
 // const line_Geometry = new THREE.BufferGeometry().setFromPoints( points );
 // const line = new THREE.Line( line_Geometry, line_Material );
 // scene.add( line );
+function Init() {
+    //pistol gemoetry, material and mesh
+    gltf_Loader.load('/assets/models/pistol.glb', (gltf) => {
+        weapon = gltf.scene;
+        scene.add(weapon);
+    });
+    //player model geometry
+    gltf_Loader.load('/assets/models/player.glb', (gltf) => {
+        player2Model = gltf.scene;
+        player2Model.scale.set(0.1, 0.1, 0.1);
+        scene.add(player2Model);
+    });
+    gltf_Loader.load('/assets/models/player.glb', (gltf) => {
+        player3Model = gltf.scene;
+        player3Model.scale.set(0.1, 0.1, 0.1);
+        scene.add(player3Model);
+    });
+    gltf_Loader.load('/assets/models/player.glb', (gltf) => {
+        player4Model = gltf.scene;
+        player4Model.scale.set(0.1, 0.1, 0.1);
+        scene.add(player4Model);
+    });
+}
 function animate() {
     requestAnimationFrame(animate);
     renderer.render(scene, camera);
@@ -202,4 +208,5 @@ function keepInBounds() {
         camera.position.z = 49;
     }
 }
+Init();
 animate();

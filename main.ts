@@ -8,14 +8,14 @@ const moveSpeed : number = 0.25;
 let isJumping : boolean = false;
 let verticalVelocity : number = 0;
 let player : Player=new Player(0,0,0,100);
-let player2 : Player=new Player(0,1,-10,100);
-let player3 : Player=new Player(0,1,-20,100);
+let player2 : Player=new Player(0,1,-80,100);
+let player3 : Player=new Player(0,1,-30,100);
 let player4 : Player=new Player(0,1,-30,100);
 let player2Model : THREE.Group;
 let player3Model : THREE.Group;
 let player4Model : THREE.Group;
 const gravity : number= 0.02;
-let weapon: THREE.Group | undefined;
+let weapon: THREE.Group 
 const players: Player[] = [player2,player3,player4 ]
 
 
@@ -80,27 +80,7 @@ const plane = new THREE.Mesh(plane_Geometry,plane_Material);
 const light = new THREE.AmbientLight( 0x404040 ); // soft white light
 scene.add( light );
 const gltf_Loader = new GLTFLoader();
-//pistol gemoetry, material and mesh
-gltf_Loader.load('/assets/models/pistol.glb', (gltf) => {
-  weapon = gltf.scene;
-  scene.add(weapon);
 
-  
-});
-//player model geometry
-gltf_Loader.load('/assets/models/player.glb', (gltf) => {
-  player2Model = gltf.scene;
-  player3Model= gltf.scene
-  player4Model=gltf.scene
-  player2Model.scale.set(0.1,0.1,0.1)
-  player3Model.scale.set(0.1,0.1,0.1)
-  player4Model.scale.set(0.1,0.1,0.1)
-  scene.add(player2Model);
-  scene.add(player3Model);
-  scene.add(player4Model);
-
-  
-});
 
 
 
@@ -214,6 +194,52 @@ function updateObjectPosition():void {
 // const line = new THREE.Line( line_Geometry, line_Material );
 // scene.add( line );
 
+
+function Init() :void{
+//pistol gemoetry, material and mesh
+gltf_Loader.load('/assets/models/pistol.glb', (gltf) => {
+  weapon = gltf.scene;
+  scene.add(weapon);
+
+  
+});
+//player model geometry
+gltf_Loader.load('/assets/models/player.glb', (gltf) => {
+  player2Model = gltf.scene;
+  
+  player2Model.scale.set(0.1,0.1,0.1)
+  
+  scene.add(player2Model);
+
+
+  
+});
+gltf_Loader.load('/assets/models/player.glb', (gltf) => {
+  player3Model = gltf.scene;
+  
+  player3Model.scale.set(0.1,0.1,0.1)
+  
+  scene.add(player3Model);
+
+
+  
+});
+gltf_Loader.load('/assets/models/player.glb', (gltf) => {
+  player4Model = gltf.scene;
+  
+  player4Model.scale.set(0.1,0.1,0.1)
+  
+  scene.add(player4Model);
+
+
+  
+});
+
+
+
+}
+
+
 function animate() :void{
   
   
@@ -257,7 +283,7 @@ function keepInBounds():void{
 
 }
 
-
+Init();
 animate();
 
 
