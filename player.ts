@@ -14,4 +14,5 @@ export class Player {
     this.zAxis=zAxis;
     
    }
+   
 }

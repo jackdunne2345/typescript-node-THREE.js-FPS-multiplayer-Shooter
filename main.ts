@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls';
 import { Player } from '/player.js';
-import { GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 
 const moveSpeed : number = 0.25;
@@ -15,8 +15,13 @@ let player2Model : THREE.Group;
 let player3Model : THREE.Group;
 let player4Model : THREE.Group;
 const gravity : number= 0.02;
-let weapon: THREE.Group 
-const players: Player[] = [player2,player3,player4 ]
+let weapon: THREE.Group;
+
+
+
+
+
+
 
 
 /*
