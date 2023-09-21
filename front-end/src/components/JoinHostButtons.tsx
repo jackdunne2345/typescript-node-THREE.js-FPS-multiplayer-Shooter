@@ -1,33 +1,56 @@
 import FadeIn from "react-fade-in";
+import JoinGame from "./JoinGame";
 import { useState } from "react";
-import ListGroup from "./ListGroup";
+import HostComponent from "./HostComponent";
+import styles from "../Styles.module.css";
 export default function JoinHost() {
-  const [showListGroup, setShowListGroup] = useState(false);
+  const [showHostCompnent, setShowHostComponent] = useState(false);
 
-  const handleButtonClick = () => {
-    setShowListGroup(true);
+  const [showJoinTextEntry, setShowJoinTextEntry] = useState(false);
+
+  const handleHostButtonClick = () => {
+    setShowHostComponent(true);
+    setShowJoinTextEntry(false);
   };
-  return showListGroup ? (
-    <ListGroup />
-  ) : (
-    <FadeIn>
-      <div
-        style={{
-          position: "absolute",
-          left: "50%",
-          top: "50%",
-          transform: "translate(-50%, -50%)",
-          display: "flex",
-          columnGap: "20px",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <button className="btn btn-info" onClick={handleButtonClick}>
-          HOST
-        </button>
 
-        <button className="btn btn-info">JOIN</button>
+  const handleJoinButtonClick = () => {
+    setShowJoinTextEntry(true);
+    setShowHostComponent(false);
+  };
+
+  return (
+    <FadeIn>
+      <div className={styles.divContainerStyle}>
+        <div className={styles.headElement}>
+          {showHostCompnent ? (
+            <HostComponent />
+          ) : (
+            <button
+              className={`btn btn-secondary ${styles.button}`}
+              style={{ width: "200px" }}
+              onClick={handleHostButtonClick}
+            >
+              Host
+            </button>
+          )}
+        </div>
+        <div className={styles.midleElement}>
+          {showJoinTextEntry ? (
+            <JoinGame />
+          ) : (
+            <button
+              className={`btn btn-secondary ${styles.button}`}
+              onClick={handleJoinButtonClick}
+            >
+              Join
+            </button>
+          )}
+        </div>
+        <div className={styles.midleElement}>
+          <button className={`btn btn-secondary ${styles.button}`}>
+            Settings
+          </button>
+        </div>
       </div>
     </FadeIn>
   );

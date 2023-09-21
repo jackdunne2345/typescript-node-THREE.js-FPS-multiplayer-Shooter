@@ -162,8 +162,13 @@ function shoot(){
 
 function movePlayers():void{
   player2Model?.position.set(player2.xAxis,player2.yAxis,player2.zAxis)
+  player2Model?.rotation.set(-camera.rotation.x,camera.rotation.y,-camera.rotation.z);
   player3Model?.position.set(player3.xAxis,player3.yAxis,player3.zAxis)
+  player3Model?.rotation.set(-camera.rotation.x,-camera.rotation.y,-camera.rotation.z);
+
   player4Model?.position.set(player4.xAxis,player4.yAxis,player4.zAxis)
+  player4Model?.rotation.set(-camera.rotation.x,-camera.rotation.y,-camera.rotation.z);
+
 }
 
 

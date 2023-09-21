@@ -14,30 +14,6 @@ let player3Model;
 let player4Model;
 const gravity = 0.02;
 let weapon;
-const socket = new WebSocket('ws://localhost:3000'); // Replace with your server URL
-// Event listener for when the connection is established
-socket.addEventListener('open', (event) => {
-    console.log('Connected to server');
-});
-// Event listener for receiving messages from the server
-socket.addEventListener('message', (event) => {
-    console.log('message recived');
-});
-// Event listener for when the connection is closed
-socket.addEventListener('close', (event) => {
-    if (event.wasClean) {
-        console.log('Connection closed cleanly');
-    }
-    else {
-        console.error('Connection abruptly closed');
-    }
-});
-// function sendMessage() {
-//     const messageInput = document.getElementById('messageInput');
-//     const message = messageInput.value;
-//     socket.send(message);
-//     messageInput.value = '';
-// }
 /*
 
 wrapS defines how the texture is wrapped horizontally and corresponds to U in UV mapping.
@@ -149,8 +125,11 @@ function shoot() {
 }
 function movePlayers() {
     player2Model === null || player2Model === void 0 ? void 0 : player2Model.position.set(player2.xAxis, player2.yAxis, player2.zAxis);
+    player2Model === null || player2Model === void 0 ? void 0 : player2Model.rotation.set(-camera.rotation.x, camera.rotation.y, -camera.rotation.z);
     player3Model === null || player3Model === void 0 ? void 0 : player3Model.position.set(player3.xAxis, player3.yAxis, player3.zAxis);
+    player3Model === null || player3Model === void 0 ? void 0 : player3Model.rotation.set(-camera.rotation.x, -camera.rotation.y, -camera.rotation.z);
     player4Model === null || player4Model === void 0 ? void 0 : player4Model.position.set(player4.xAxis, player4.yAxis, player4.zAxis);
+    player4Model === null || player4Model === void 0 ? void 0 : player4Model.rotation.set(-camera.rotation.x, -camera.rotation.y, -camera.rotation.z);
 }
 function updateObjectPosition() {
     // Get the camera's position and direction
