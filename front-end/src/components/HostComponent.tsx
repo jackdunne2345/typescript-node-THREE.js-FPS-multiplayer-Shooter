@@ -2,7 +2,7 @@ import FadeIn from "react-fade-in";
 import { useEffect, useState } from "react";
 import { Peer } from "peerjs";
 import styles from "../Styles.module.css";
-import { PlayerMap } from "./type_interface";
+
 export default function HostComponent() {
   const initialMap: PlayerMap[] = [{ playerName: "you", playerId: "id" }];
   const [players, setPlayers] = useState(initialMap);
@@ -24,12 +24,13 @@ export default function HostComponent() {
     });
 
     peer.on("connection", (conn) => {
+      
       conn.on("data", (data) => {
         console.log("the data came in" + data);
         let parsedPlayers = JSON.parse(data as string);
 
         if (Array.isArray(parsedPlayers)) {
-          // Assuming parsedPlayers is an array of PlayerMap objects
+          
           setPlayers([...players, ...parsedPlayers]);
         } else {
           console.error("Parsed data is not in the expected format.");

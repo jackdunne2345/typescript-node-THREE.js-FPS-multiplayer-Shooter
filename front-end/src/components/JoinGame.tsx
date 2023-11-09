@@ -27,7 +27,6 @@ export default function JoinGame() {
         let parsedPlayers = JSON.parse(data as string);
 
         if (Array.isArray(parsedPlayers)) {
-          // Assuming parsedPlayers is an array of PlayerMap objects
           setPlayers(parsedPlayers);
         } else {
           console.error("Parsed data is not in the expected format.");

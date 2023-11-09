@@ -1,19 +1,21 @@
+import { Object3D, Mesh, MeshBasicMaterial } from "three";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 
+export class Player extends Object3D {
+  private gltf_Loader = new GLTFLoader();
+  private health: number = 100;
+  constructor() {
+    super();
+    this.gltf_Loader.load("/assets/models/player.glb", (gltf) => {
+      gltf.scene.scale.set(0.1, 0.1, 0.1);
 
-export class Player {
-    health: number;
-    xAxis: number;
-    yAxis: number;
-    zAxis: number;
-    rotation: number
-    
-    
-   constructor(xAxis: number, yAxis: number, zAxis: number, health: number, rotation: number) {
-    this.health=health;
-    this.xAxis=xAxis;
-    this.yAxis=yAxis;
-    this.zAxis=zAxis;
-    this.rotation=rotation;
-   }
-   
+      this.add(gltf.scene);
+    });
+  }
+  decreaseHealth(amount: number) {
+    this.health -= amount;
+    if (this.health < 0) {
+      this.health = 0;
+    }
+  }
 }
