@@ -1,19 +1,44 @@
-import { Object3D } from "three";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
-export class Player extends Object3D {
+import * as THREE from "three";
+import { PointerLockControls } from "three/examples/jsm/controls/PointerLockControls";
+export class Player extends THREE.Object3D {
     constructor() {
         super();
-        this.gltf_Loader = new GLTFLoader();
+        this.moveSpeed = 0.25;
         this.health = 100;
-        this.gltf_Loader.load("/assets/models/player.glb", (gltf) => {
-            gltf.scene.scale.set(0.1, 0.1, 0.1);
-            this.add(gltf.scene);
+    }
+}
+export class PlayerController {
+    constructor(player, camera) {
+        this.keys = {};
+        this.player = player;
+        this.moveSpeed = this.player.moveSpeed;
+        this.camera = camera;
+        this.cameraControls = new PointerLockControls(this.camera, document.body);
+        document.addEventListener("click", () => {
+            this.cameraControls.lock();
+            document.addEventListener("keydown", (event) => {
+                this.keys[event.key] = true;
+            });
+            document.addEventListener("keyup", (event) => {
+                this.keys[event.key] = false;
+            });
         });
     }
-    decreaseHealth(amount) {
-        this.health -= amount;
-        if (this.health < 0) {
-            this.health = 0;
+    keyboardControls() {
+        this.player.position.x = this.camera.position.x;
+        this.player.position.y = this.camera.position.y;
+        this.player.position.z = this.camera.position.z;
+        if (this.keys["w"] || this.keys["W"]) {
+            this.cameraControls.moveForward(this.moveSpeed);
+        }
+        if (this.keys["s"] || this.keys["S"]) {
+            this.cameraControls.moveForward(-this.moveSpeed);
+        }
+        if (this.keys["a"] || this.keys["A"]) {
+            this.cameraControls.moveRight(-this.moveSpeed);
+        }
+        if (this.keys["d"] || this.keys["D"]) {
+            this.cameraControls.moveRight(this.moveSpeed);
         }
     }
 }
