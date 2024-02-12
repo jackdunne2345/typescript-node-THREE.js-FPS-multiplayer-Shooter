@@ -1,14 +1,18 @@
 import * as THREE from "three";
-
-export class GWorld {
+import * as CANNON from "cannon-es";
+import { Prop } from "./PropStack";
+export class World {
   public scene: THREE.Scene;
+  public world: CANNON.World;
   public camera: THREE.PerspectiveCamera;
   private renderer: THREE.WebGLRenderer;
+  private props: Prop[];
   // private cube: THREE.Mesh;
   // private plane: THREE.Mesh;
 
   constructor() {
     this.scene = new THREE.Scene();
+    this.world = new CANNON.World({ gravity: new CANNON.Vec3(0, 0, 0) });
     this.camera = new THREE.PerspectiveCamera(
       75,
       window.innerWidth / window.innerHeight,
@@ -16,7 +20,7 @@ export class GWorld {
       1000
     );
     this.camera.position.z = 20;
-
+    this.props = [];
     this.camera.position.y = 2;
     this.renderer = new THREE.WebGLRenderer();
     this.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -39,11 +43,15 @@ export class GWorld {
 
   render() {
     this.renderer.render(this.scene, this.camera);
+    this.world.fixedStep();
+    this.props.forEach((prop) => {
+      prop.syncPosition();
+    });
   }
 
-  createProp() {}
-
-  addToScene(obj: THREE.Object3D) {
-    this.scene.add(obj);
+  addProp(obj: Prop) {
+    this.scene.add(obj.mesh);
+    this.world.addBody(obj.body);
+    this.props.push(obj);
   }
 }

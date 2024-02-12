@@ -1,30 +1,28 @@
-import * as GWORLD from "./GraphicsWorld";
-import * as PLAYERS from "./Player";
-import * as PWorld from "./PhysicsWorld";
-import * as CANNON from "cannon-es";
+import * as WORLD from "./World";
+import * as CHARACTERS from "./Characters";
 import CannonDebugger from "cannon-es-debugger";
-import { Prop, Stack } from "./PropStack";
-import * as THREE from "three";
-import { ShapeType, threeToCannon } from "three-to-cannon";
+import { PropAtributes, Stack, Prop } from "./PropStack";
 
 //add a world and a camera
-const GAME_WORLD = new GWORLD.GWorld();
+const GAME_WORLD = new WORLD.World();
 //add a player
-const PLAYER = new PLAYERS.Player();
-GAME_WORLD.addToScene(PLAYER);
+const PLAYER = new CHARACTERS.Player();
+const PLAYER2 = new CHARACTERS.Player();
+PLAYER2.position.set(5, 10, 5);
+PLAYER.position.set(-5, 1, -5);
 //add controls
-const controls = new PLAYERS.PlayerController(PLAYER, GAME_WORLD.camera);
-//add physics
-const PHYSICS_WORLD = new PWorld.PWorld();
-const CANNON_DEBUGGER = CannonDebugger(GAME_WORLD.scene, PHYSICS_WORLD.world, {
+const controls = new CHARACTERS.PlayerController(PLAYER, GAME_WORLD.camera);
+GAME_WORLD.world.addBody(PLAYER);
+GAME_WORLD.world.addBody(PLAYER2);
+const CANNON_DEBUGGER = CannonDebugger(GAME_WORLD.scene, GAME_WORLD.world, {
   color: 0xff0000,
 });
 //make props
 
 //-------
-const PROP_STACK = new Stack<Prop>();
+const PROP_STACK = new Stack<PropAtributes>();
 
-const PLANE: Prop = {
+const PLANE: PropAtributes = {
   id: 1,
   type: "PLANE",
   geometry: {
@@ -47,18 +45,18 @@ const PLANE: Prop = {
   dynamic: false,
 };
 
-const CUBE: Prop = {
+const CUBE: PropAtributes = {
   id: 1,
   type: "BOX",
   geometry: {
-    width: 1,
-    height: 1,
+    width: 50,
+    height: 50,
     debth: 1,
   },
   color: 0x00ff00,
   position: {
     x: 0,
-    y: 10,
+    y: 25,
     z: 0,
   },
   rotation: {
@@ -66,63 +64,13 @@ const CUBE: Prop = {
     y: 0,
     z: 0,
   },
-  mass: 5,
+  mass: 5000000000000000,
   dynamic: true,
 };
 PROP_STACK.push(PLANE);
 PROP_STACK.push(CUBE);
 
-//initilise props in the scene
-// const Init = (s: Stack<Prop>) => {
-//   while (!s.isEmpty()) {
-//     let gProp: THREE.Object3D;
-
-//     let material: THREE.MeshBasicMaterial = new THREE.MeshBasicMaterial();
-//     let geometry: THREE.PlaneGeometry | THREE.BoxGeometry;
-//     let prop: Prop = s.pop()!;
-//     let body: CANNON.Body;
-//     if (prop.type === "PLANE") {
-//       geometry = new THREE.PlaneGeometry(
-//         prop.geometry.width,
-//         prop.geometry.height
-//       );
-//     } else if ((prop.type = "BOX")) {
-//       geometry = new THREE.BoxGeometry(
-//         prop.geometry.width,
-//         prop.geometry.height,
-//         prop.geometry.debth
-//       );
-//     }
-//     if (prop.color) {
-//       material = new THREE.MeshBasicMaterial({ color: prop.color });
-//     }
-
-//     gProp = new THREE.Mesh(geometry!, material);
-//     gProp.quaternion.setFromEuler(
-//       new THREE.Euler(prop.rotation.x, prop.rotation.y, prop.rotation.z)
-//     );
-
-//     gProp.position.set(prop.position?.x!, prop.position?.y!, prop.position?.z!);
-
-//     let result = threeToCannon(gProp, { type: ShapeType.BOX });
-//     const { shape } = result!;
-
-//     prop.dynamic
-//       ? (body = new CANNON.Body({ mass: prop.mass, type: CANNON.Body.DYNAMIC }))
-//       : (body = new CANNON.Body({ mass: prop.mass, type: CANNON.Body.STATIC }));
-//     body.addShape(shape);
-//     body.position.set(prop.position?.x!, prop.position?.y!, prop.position?.z!);
-//     body.quaternion.setFromEuler(
-//       prop.rotation.x,
-//       prop.rotation.y,
-//       prop.rotation.z
-//     );
-//     PHYSICS_WORLD.world.addBody(body);
-//     GAME_WORLD.scene.add(gProp);
-//   }
-// };
-
-const displayPlayerPosition = () => {
+const DisplayPlayerPosition = () => {
   document.getElementById("x")!.innerText = "x : ".concat(
     PLAYER.position.x.toFixed(2)
   );
@@ -132,16 +80,23 @@ const displayPlayerPosition = () => {
   document.getElementById("z")!.innerText = "z : ".concat(
     PLAYER.position.z.toFixed(2)
   );
-  document.getElementById("health")!.innerText =
-    "health : " + PLAYER.health.toString();
+  document.getElementById("health")!.innerText = "health : ";
+};
+
+// initilise props in the scene
+const Init = (s: Stack<PropAtributes>) => {
+  while (!s.isEmpty()) {
+    let p: PropAtributes = s.pop()!;
+    const prop = new Prop(p);
+    GAME_WORLD.addProp(prop);
+  }
 };
 
 const Animate = () => {
-  // Init(PROP_STACK);
+  Init(PROP_STACK);
   window.requestAnimationFrame(Animate);
   controls.keyboardControls();
-  displayPlayerPosition();
-  PHYSICS_WORLD.world.fixedStep();
+  DisplayPlayerPosition();
   CANNON_DEBUGGER.update();
   GAME_WORLD.render();
 };

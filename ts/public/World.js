@@ -5,9 +5,10 @@ export class World {
     // private plane: THREE.Mesh;
     constructor() {
         this.scene = new THREE.Scene();
-        this.world = new CANNON.World({ gravity: new CANNON.Vec3(0, -9.82, 0) });
+        this.world = new CANNON.World({ gravity: new CANNON.Vec3(0, 0, 0) });
         this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         this.camera.position.z = 20;
+        this.props = [];
         this.camera.position.y = 2;
         this.renderer = new THREE.WebGLRenderer();
         this.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -27,8 +28,13 @@ export class World {
     render() {
         this.renderer.render(this.scene, this.camera);
         this.world.fixedStep();
+        this.props.forEach((prop) => {
+            prop.syncPosition();
+        });
     }
-    addToScene(obj) {
-        this.scene.add(obj);
+    addProp(obj) {
+        this.scene.add(obj.mesh);
+        this.world.addBody(obj.body);
+        this.props.push(obj);
     }
 }
