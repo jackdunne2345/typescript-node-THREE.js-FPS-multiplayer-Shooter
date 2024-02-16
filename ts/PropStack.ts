@@ -75,10 +75,12 @@ export class Prop {
   }
 
   private createBody(atributes: PropAtributes, mesh: THREE.Mesh) {
+    const material = new CANNON.Material({ friction: 0 });
     let body: CANNON.Body;
     body = new CANNON.Body({
       mass: atributes.mass,
       type: atributes.dynamic ? CANNON.Body.DYNAMIC : CANNON.Body.STATIC,
+      material: material,
     });
 
     let result = threeToCannon(mesh);

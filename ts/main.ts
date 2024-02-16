@@ -4,12 +4,14 @@ import CannonDebugger from "cannon-es-debugger";
 import { PropAtributes, Stack, Prop } from "./PropStack";
 
 //add a world and a camera
-const GAME_WORLD = new WORLD.World();
+export const GAME_WORLD = new WORLD.World();
 //add a player
-const PLAYER = new CHARACTERS.Player();
+export const PLAYER = new CHARACTERS.Player();
 const PLAYER2 = new CHARACTERS.Player();
-PLAYER2.position.set(5, 10, 5);
-PLAYER.position.set(-5, 1, -5);
+PLAYER2.position.set(1, 10, -5);
+PLAYER.position.set(-5, 3, -5);
+PLAYER.fixedRotation = true;
+
 //add controls
 const controls = new CHARACTERS.PlayerController(PLAYER, GAME_WORLD.camera);
 GAME_WORLD.world.addBody(PLAYER);
@@ -42,11 +44,11 @@ const PLANE: PropAtributes = {
     z: 0,
   },
   mass: 0,
-  dynamic: false,
+  dynamic: true,
 };
 
 const CUBE: PropAtributes = {
-  id: 1,
+  id: 2,
   type: "BOX",
   geometry: {
     width: 50,
@@ -64,7 +66,7 @@ const CUBE: PropAtributes = {
     y: 0,
     z: 0,
   },
-  mass: 5000000000000000,
+  mass: 0,
   dynamic: true,
 };
 PROP_STACK.push(PLANE);
@@ -80,7 +82,7 @@ const DisplayPlayerPosition = () => {
   document.getElementById("z")!.innerText = "z : ".concat(
     PLAYER.position.z.toFixed(2)
   );
-  document.getElementById("health")!.innerText = "health : ";
+  document.getElementById("health")!.innerText = "FPS : ".concat();
 };
 
 // initilise props in the scene
@@ -91,9 +93,8 @@ const Init = (s: Stack<PropAtributes>) => {
     GAME_WORLD.addProp(prop);
   }
 };
-
+Init(PROP_STACK);
 const Animate = () => {
-  Init(PROP_STACK);
   window.requestAnimationFrame(Animate);
   controls.keyboardControls();
   DisplayPlayerPosition();
