@@ -1,0 +1,125 @@
+
+@font-face {
+  font-family: 'RustFont';
+  src: local('RustFont'), url('./assets/font/Rust.ttf') format('truetype');
+}
+
+body {// Center everything ever
+  font-family: 'RustFont';
+  justify-content: center;
+  align-content: center;
+  align-items: center;
+  text-align: center;
+  min-height: 100vh;
+  display: flex;
+}
+.container {
+  font-family: 'RustFont';
+  background-color: #353a3b;
+  width: 50vh; /* Adjust as needed */
+  height: 50vh; /* Set height to 50% of the viewport height */
+  max-width: 800px; /* Adjust max-width as needed */
+  margin: auto; /* Center align the container */
+  padding: 5em; /* Adjust padding as needed */
+  display: flex;
+  flex-direction: column; /* Stack elements as a column */
+  align-items: center; /* Center align items horizontally */
+  justify-content: center; /* Center align items vertically */
+  border: 2px solid #03ff5b; /* Add a border with white color and 2px width */
+}
+
+.title {
+  font-family: 'RustFont';
+  background-color: red;
+}
+
+
+
+.buttons > * {
+  margin-top: 1em; /* Adjust as needed */
+}
+
+button {
+  background: none;
+  border: 2px solid;
+  font: inherit;
+  line-height: 1;
+  margin: 0.5em;
+  padding: 1em 2em;
+  width: 100%; /* Make button width 100% of parent container */
+  max-width: 300px; 
+}
+
+
+.pulse:hover, 
+.pulse:focus {
+  animation: pulse 1s;
+  box-shadow: 0 0 0 2em transparent;
+}
+.offset {  
+  box-shadow: 
+    0.3em 0.3em 0 0 var(--color),
+    inset 0.3em 0.3em 0 0 var(--color);
+  
+  &:hover,
+  &:focus {
+    box-shadow: 
+      0 0 0 0 var(--hover),
+      inset 6em 3.5em 0 0 var(--hover);
+  }
+}
+$colors: (
+  fill: #a972cb,
+  pulse: #03ff5b, 
+  close: #04cff7, 
+  raise: #ffa260, 
+  up: #e4cb58, 
+  slide: #8fc866, 
+  offset: #19bc8b
+);
+@each $button, $color in $colors {
+  .#{$button} {
+    --color: #{$color};
+    --hover: #{adjust-hue($color, 45deg)};
+  }
+}
+button {  
+  color: var(--color);
+  transition: 0.25s;
+  
+  &:hover,
+  &:focus { 
+    border-color: var(--hover);
+    color: #04cff7;
+  }
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 var(--hover); }
+}
+
+
+/* Media queries for responsiveness */
+/* For screens smaller than 600px */
+@media (max-width: 600px) {
+  .buttons {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  button {
+    margin-bottom: 10px;
+  }
+}
+
+/* For screens between 600px and 900px */
+@media (min-width: 600px) and (max-width: 900px) {
+  .buttons {
+    flex-wrap: wrap;
+  }
+
+  button {
+    flex: 1 1 45%;
+    margin: 5px;
+  }
+}
