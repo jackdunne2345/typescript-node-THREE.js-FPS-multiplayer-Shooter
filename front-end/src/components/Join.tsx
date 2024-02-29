@@ -1,26 +1,27 @@
 import "bootstrap/dist/css/bootstrap.css";
 import Styles from "../Styles.module.scss";
 import game from "../game/Game.ts";
-
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useState } from "react";
 interface Props {
   back: (string: string) => void;
+  lobby: string;
 }
 
-const Host: React.FC<Props> = ({ back }) => {
-  const [lobbyId, setLobbyId] = useState<string | null>(null);
+const Join: React.FC<Props> = ({ back, lobby }) => {
+  const [lobbyId, setLobbyId] = useState<string | null>(lobby);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    setLobbyId(lobby);
+    console.log("react useeffect join comp lobby id=" + lobbyId);
     console.log("i fire once");
-    const createLobby = async () => {
-      let lobbyId = await game.CreateLobby();
-      setLobbyId(lobbyId);
+    const joinLobby = async () => {
+      await game.JoinLobby(lobbyId!);
     };
-    if (!lobbyId) {
-      createLobby();
+    if (lobby) {
+      joinLobby();
     }
   }, []);
-  useEffect(() => {}, [game.LOBBY]);
 
   return (
     <div className={Styles.Host}>
@@ -35,14 +36,13 @@ const Host: React.FC<Props> = ({ back }) => {
       Join Code: {lobbyId}
       <p>Players</p>
       <ul className="list-group">
-        {game.LOBBY.map((player, index) => (
-          <li key={index} className="list-group-item">
-            {player.name}
-          </li>
+        {" "}
+        {game.LOBBY.map((player) => (
+          <li className="list-group-item">{player.name}</li>
         ))}
       </ul>
       <button>Start Game</button>
     </div>
   );
 };
-export default Host;
+export default Join;

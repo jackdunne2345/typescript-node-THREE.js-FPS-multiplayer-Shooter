@@ -7,6 +7,7 @@ const material = new CANNON.Material({ friction: 0 });
 export class Player extends CANNON.Body {
   public moveSpeed: number;
   private health: number;
+  public name: string;
 
   constructor() {
     super({
@@ -17,7 +18,7 @@ export class Player extends CANNON.Body {
     });
     this.moveSpeed = 15;
     this.health = 100;
-
+    this.name = Math.random().toString(36).substr(2, 9);
     this.angularDamping = 1;
   }
 }
@@ -48,6 +49,8 @@ export class PlayerController {
     this.camera = camera;
     this.cameraControls = new PointerLockControls(this.camera, document.body);
     this.moveSpeed = this.player.moveSpeed;
+  }
+  StartControls() {
     document.addEventListener("click", () => {
       this.cameraControls.lock();
 
@@ -60,7 +63,6 @@ export class PlayerController {
       });
     });
   }
-
   keyboardControls() {
     this.camera.position.x = this.player.position.x;
     this.camera.position.y = this.player.position.y + 1.5;

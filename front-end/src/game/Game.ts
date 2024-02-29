@@ -1,22 +1,59 @@
 import * as WORLD from "./World";
 import * as CHARACTERS from "./Characters";
-
+import { Socket, io } from "socket.io-client";
+import axios from "axios";
 import { PropAtributes, Stack, Prop } from "./PropStack";
+interface PlayerInterface {
+  name: string;
+  id: number;
+}
 
 class Game {
   private GAMEWORLD: WORLD.World;
-  private PLAYER: CHARACTERS.Player;
+  public PLAYER: CHARACTERS.Player;
+  public LOBBY: PlayerInterface[];
   private PLAYER2: CHARACTERS.EnemyPlayer;
   private CONTROLS: CHARACTERS.PlayerController;
   private PROPSTACK: Stack<PropAtributes>;
   private PLANE: PropAtributes;
   private CUBE: PropAtributes;
+  private SOCKET: Socket;
+  private SERVER_URL = "http://localhost:3000";
+  public LOBBY_ID: string | null;
+
   constructor() {
+    this.LOBBY_ID = null;
+    this.LOBBY = [];
+    this.SOCKET = io("http://localhost:3000");
+    this.SOCKET.on("player-joined", (data) => {
+      console.log("player joined=" + data.name + data.id);
+      const player: PlayerInterface = { name: data.name, id: data.id };
+
+      this.LOBBY.push(player);
+      console.log(this.LOBBY);
+    });
+    this.SOCKET.on("player-left", (data) => {
+      const playerName = data.playerName;
+      const index = this.LOBBY.findIndex(
+        (player) => player.name === playerName
+      );
+      if (index !== -1) {
+        // Remove the element at the found index
+        this.LOBBY.splice(index, 1);
+        console.log(`Removed ${playerName} from the array`);
+      } else {
+        console.log(`${playerName} not found in the array`);
+      }
+      console.log(this.LOBBY);
+    });
     this.GAMEWORLD = new WORLD.World();
     this.PLAYER = new CHARACTERS.Player();
     this.PLAYER.position.set(-5, 3, -5);
     this.PLAYER.fixedRotation = true;
-    this.PLAYER2 = new CHARACTERS.EnemyPlayer(1, "john");
+    this.PLAYER2 = new CHARACTERS.EnemyPlayer(
+      1,
+      Math.random().toString(36).substr(2, 9)
+    );
     this.GAMEWORLD.world.addBody(this.PLAYER);
     this.GAMEWORLD.scene.add(this.PLAYER2);
     this.PLAYER2.position.set(1, 0, -5);
@@ -24,6 +61,7 @@ class Game {
       this.PLAYER,
       this.GAMEWORLD.camera
     );
+    // this.CONTROLS.StartControls();
     this.PROPSTACK = new Stack<PropAtributes>();
     this.PLANE = {
       id: 1,
@@ -73,6 +111,63 @@ class Game {
     this.PROPSTACK.push(this.CUBE);
     this.InitProps(this.PROPSTACK);
   }
+
+  async CreateLobby() {
+    try {
+      // Send a POST request to the server to create a lobby
+      const response = await axios.post(`${this.SERVER_URL}/create-lobby`);
+      const data = response.data.id;
+      console.log("CreateLobby() data returned in http response=" + data.value);
+      this.LOBBY_ID = data;
+      this.JoinLobby(this.LOBBY_ID!);
+    } catch (error: any) {
+      console.error("Error creating lobby:", error.message);
+    }
+
+    return this.LOBBY_ID;
+  }
+  async JoinLobby(lobbyId: string) {
+    this.LOBBY_ID = lobbyId;
+    const join = async (lobbyId: string) => {
+      try {
+        const joinData = {
+          lobbyId: lobbyId,
+          playerName: this.PLAYER.name,
+        };
+        this.SOCKET.emit("join-lobby", joinData);
+        console.log(this.PLAYER.name);
+        console.log(this.LOBBY);
+
+        console.log("emmit");
+      } catch (error: any) {
+        console.error("Error joining the lobby:", error.message);
+      }
+    };
+
+    try {
+      await join(lobbyId);
+      // Make a GET request to the server's API endpoint for lobbies
+      const response = await axios.get(`${this.SERVER_URL}/lobbies/${lobbyId}`);
+
+      // Extract player names from the lobby information and store in the playerNames array
+      this.LOBBY = response.data.players;
+
+      // Return the data received from the server
+      return response.data;
+    } catch (error: any) {
+      console.error("Error getting lobby information:", error.message);
+      throw error;
+    }
+  }
+  LeaveLobby() {
+    this.SOCKET.emit("leave-lobby", {
+      lobbyId: this.LOBBY_ID,
+      playerName: this.PLAYER.name,
+    });
+    this.LOBBY = [];
+    //need to reset the state of the game when this is done
+  }
+  //plan for a level editor
   InitProps(s: Stack<PropAtributes>) {
     while (!s.isEmpty()) {
       let p: PropAtributes = s.pop()!;
