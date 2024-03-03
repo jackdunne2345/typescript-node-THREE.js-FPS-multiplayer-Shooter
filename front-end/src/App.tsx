@@ -57,7 +57,7 @@ const App: React.FC<Props> = () => {
         )}
         {currentState === "host" && <Host back={handleChangeState} />}
         {currentState === "join" && (
-          <Join back={handleChangeState} lobby={inputValue} />
+          <Join back={handleChangeState} Id={inputValue} />
         )}
         {/*  */}
       </div>

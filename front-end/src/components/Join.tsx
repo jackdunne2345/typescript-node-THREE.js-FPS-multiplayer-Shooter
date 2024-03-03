@@ -1,24 +1,28 @@
 import "bootstrap/dist/css/bootstrap.css";
 import Styles from "../Styles.module.scss";
 import game from "../game/Game.ts";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 interface Props {
   back: (string: string) => void;
-  lobby: string;
+  Id: string;
 }
 
-const Join: React.FC<Props> = ({ back, lobby }) => {
-  const [lobbyId, setLobbyId] = useState<string | null>(lobby);
+const Join: React.FC<Props> = ({ back, Id }) => {
+  const [lobbyId, setLobbyId] = useState<string | null>(Id);
   const [error, setError] = useState<string | null>(null);
+  const lobby = useSyncExternalStore(
+    game.LOBBY_STORE.subscribe,
+    game.LOBBY_STORE.getSnapShot
+  );
 
   useEffect(() => {
-    setLobbyId(lobby);
+    setLobbyId(Id);
     console.log("react useeffect join comp lobby id=" + lobbyId);
     console.log("i fire once");
     const joinLobby = async () => {
       await game.JoinLobby(lobbyId!);
     };
-    if (lobby) {
+    if (Id) {
       joinLobby();
     }
   }, []);
@@ -37,7 +41,7 @@ const Join: React.FC<Props> = ({ back, lobby }) => {
       <p>Players</p>
       <ul className="list-group">
         {" "}
-        {game.LOBBY.map((player) => (
+        {lobby.map((player) => (
           <li className="list-group-item">{player.name}</li>
         ))}
       </ul>

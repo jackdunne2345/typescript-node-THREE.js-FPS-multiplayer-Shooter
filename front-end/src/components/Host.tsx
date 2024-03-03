@@ -9,7 +9,10 @@ interface Props {
 
 const Host: React.FC<Props> = ({ back }) => {
   const [lobbyId, setLobbyId] = useState<string | null>(null);
-
+  const lobby = useSyncExternalStore(
+    game.LOBBY_STORE.subscribe,
+    game.LOBBY_STORE.getSnapShot
+  );
   useEffect(() => {
     console.log("i fire once");
     const createLobby = async () => {
@@ -20,7 +23,6 @@ const Host: React.FC<Props> = ({ back }) => {
       createLobby();
     }
   }, []);
-  useEffect(() => {}, [game.LOBBY]);
 
   return (
     <div className={Styles.Host}>
@@ -35,7 +37,7 @@ const Host: React.FC<Props> = ({ back }) => {
       Join Code: {lobbyId}
       <p>Players</p>
       <ul className="list-group">
-        {game.LOBBY.map((player, index) => (
+        {lobby.map((player, index) => (
           <li key={index} className="list-group-item">
             {player.name}
           </li>

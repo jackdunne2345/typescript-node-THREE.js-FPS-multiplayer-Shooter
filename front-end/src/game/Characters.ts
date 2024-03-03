@@ -6,6 +6,7 @@ import * as CANNON from "cannon-es";
 const material = new CANNON.Material({ friction: 0 });
 export class Player extends CANNON.Body {
   public moveSpeed: number;
+  public ID: number | null;
   private health: number;
   public name: string;
 
@@ -16,6 +17,7 @@ export class Player extends CANNON.Body {
       mass: 10,
       material: material,
     });
+    this.ID = null;
     this.moveSpeed = 15;
     this.health = 100;
     this.name = Math.random().toString(36).substr(2, 9);

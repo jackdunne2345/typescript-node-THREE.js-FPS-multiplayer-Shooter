@@ -35,47 +35,54 @@ function findLobbyById(id: string): Lobby | undefined {
 }
 //add players to the lobby
 function addPlayerToLobby(lobby: Lobby, playerName: string): number {
+  let id = 0;
+  if (lobby.players.length >= 1) {
+    id = lobby.players[lobby.players.length - 1].id! + 1;
+  }
   const newPlayer: Player = {
     name: playerName,
-    id: lobby.Players.length,
+    id: id,
   };
-  lobby.Players.push(newPlayer);
-  return lobby.Players.length - 1;
+  const index = lobbies.indexOf(lobby);
+  lobbies[index].players.push(newPlayer);
+  return newPlayer.id;
 }
 
-function removePlayerFromLobby(lobbyId: string, playerName: string): void {
-  const lobby = lobbies.find((lobby) => lobby.id === lobbyId);
-  if (lobby) {
-    const playerIndex = lobby.Players.findIndex(
-      (player) => player.name === playerName
-    );
-    if (playerIndex !== -1) {
-      const removedPlayer = lobby.Players.splice(playerIndex, 1)[0];
-      console.log(`Removed player ${removedPlayer.name} from lobby ${lobbyId}`);
-    } else {
-      console.log(`Player ${playerName} not found in lobby ${lobbyId}`);
-    }
-  } else {
-    console.log(`Lobby with ID ${lobbyId} not found.`);
-  }
+function removePlayerFromLobby(lobbyId: string, playerId: number): void {
+  lobbies
+    .find((lobby) => lobby.id === lobbyId)
+    ?.players.filter((player) => player.id !== playerId);
+
+  lobbies
+    .find((lobby) => lobby.id === lobbyId)
+    ?.players.forEach((player) => {
+      console.log(player.name + ", ");
+    });
 }
 
 // Define a route to create a new lobby
 app.post("/create-lobby", (req: Request, res: Response) => {
   // Create a new lobby with an empty array of players
-  let newLobby = new Lobby();
+  let newLobby: Lobby = {
+    id: lobbies.length + Math.random().toString(36).substr(2, 9),
+    players: [],
+  };
   lobbies.push(newLobby);
   let id = newLobby.id;
   // Send the lobby ID back to the client
   res.json({ id });
 });
+
 app.get("/lobbies/:lobbyId", (req: Request, res: Response) => {
   const lobbyId = req.params.lobbyId;
-
+  let lob = findLobbyById(lobbyId);
   // Check if the lobbyId exists in the lobbies object
-  if (findLobbyById(lobbyId)) {
+  if (lob) {
     // Send the lobby information back to the client
-    res.json({ lobbyId, players: findLobbyById(lobbyId)?.Players });
+    res.json({
+      id: lob.id,
+      players: lob.players,
+    });
   } else {
     // If the lobbyId doesn't exist, send a 404 Not Found response
     res.status(404).json({ error: "Lobby not found" });
@@ -96,7 +103,7 @@ io.on("connection", (socket: Socket) => {
 
       // Join the Socket.IO room corresponding to the lobby ID
       socket.join(lobbyId);
-
+      socket.emit("my-id", { id: num });
       // Broadcast to all clients in the lobby that a new player has joined
       io.to(lobbyId).emit("player-joined", { name: playerName, id: num });
       console.log(`${playerName} joined lobby ${lobbyId}`);
@@ -107,22 +114,18 @@ io.on("connection", (socket: Socket) => {
     }
   });
 
-  socket.on("leave-lobby", (data: { lobbyId: string; playerName: string }) => {
-    const { lobbyId, playerName } = data;
+  socket.on("leave-lobby", (data: { lobbyId: string; playerId: number }) => {
+    const { lobbyId, playerId } = data;
 
-    // Remove the player from the lobby
-    removePlayerFromLobby(lobbyId, playerName);
+    removePlayerFromLobby(lobbyId, playerId);
 
-    // Leave the Socket.IO room corresponding to the lobby ID
     socket.leave(lobbyId);
 
-    // Broadcast to all clients in the lobby that a player has left
-    io.to(lobbyId).emit("player-left", { playerName });
+    io.to(lobbyId).emit("player-left", { playerId });
 
-    console.log(`${playerName} left lobby ${lobbyId}`);
+    console.log(`${playerId} left lobby ${lobbyId}`);
   });
 
-  // Listen for disconnection
   socket.on("disconnect", () => {
     console.log("A user disconnected");
   });
