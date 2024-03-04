@@ -32,13 +32,23 @@ const App: React.FC<Props> = () => {
             </button>
             {search ? (
               <FadeIn>
-                <input
-                  type="text"
-                  value={inputValue}
-                  onChange={handleInputChange}
-                  placeholder="Enter something..."
-                ></input>
-                <button onClick={() => handleChangeState("join")}>enter</button>
+                <div className={`${Styles.searchContainer} ${Styles.pulse}`}>
+                  <input
+                    onChange={handleInputChange}
+                    type="text"
+                    className={Styles.searchInput}
+                    id="countrySearch"
+                    placeholder="Enter lobby code..."
+                  />
+                  <button
+                    className={Styles.searchButton}
+                    onClick={() => {
+                      handleChangeState("join");
+                    }}
+                  >
+                    <span className={Styles.buttonContent}>Search</span>
+                  </button>
+                </div>
               </FadeIn>
             ) : (
               <button

@@ -29,6 +29,7 @@ const Host: React.FC<Props> = ({ back }) => {
       <button
         onClick={() => {
           game.LeaveLobby();
+          game.LOBBY_STORE.emptyLobby();
           back("home");
         }}
       >

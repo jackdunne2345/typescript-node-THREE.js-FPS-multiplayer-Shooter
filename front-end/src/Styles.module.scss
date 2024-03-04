@@ -3,8 +3,42 @@
   font-family: 'RustFont';
   src: local('RustFont'), url('./assets/font/Rust.ttf') format('truetype');
 }
+.searchContainer {
+  display: flex;
+  flex-direction: row;
+  margin: 0 auto;
+  overflow: hidden; 
+  border: 2px solid #03ff5b; 
+  margin-bottom: 2.5%;
+  &:hover,
+  &:focus { 
+    border-color: var(--hover);
+    color: #04cff7;
+  }
+}
 
-body {// Center everything ever
+.searchInput {
+  padding: 10px; 
+  border: none;
+  outline: none; 
+  width: 95%; 
+ background-color: #353a3b;
+}
+
+.searchButton {
+  width:35%;
+  flex-grow: 1;
+  height: 100%;
+  padding: 10px 20px; 
+  border: none;
+  border-left: 2px solid #03ff5b ;
+  cursor: pointer;
+  outline: none; 
+  transition: background-color 0.5s ease;
+  
+}
+body {
+  
   font-family: 'RustFont';
   justify-content: center;
   align-content: center;
@@ -14,6 +48,7 @@ body {// Center everything ever
   display: flex;
 }
 .container {
+  color:#03ff5b,;
   font-family: 'RustFont';
   background-color: #353a3b;
   width: 50vh; /* Adjust as needed */
@@ -23,22 +58,39 @@ body {// Center everything ever
   padding: 5em; /* Adjust padding as needed */
   display: flex;
   flex-direction: column; /* Stack elements as a column */
-  align-items: center; /* Center align items horizontally */
-  justify-content: center; /* Center align items vertically */
-  border: 2px solid #03ff5b; /* Add a border with white color and 2px width */
+  border: 2px solid #03ff5b;
+  justify-content: center;
+  align-content: center;
+  align-items: center; /* Add a border with white color and 2px width */
 }
 
 .title {
+  margin-bottom: 1vw;
+  background-color: #353a3b;
+  display: flex;
+  height:10vw;
+  width: 40vw;
   font-family: 'RustFont';
-  background-color: red;
+  text-transform: uppercase;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  font-size: 8vw;
+  animation: glow 2s ease-in-out infinite alternate;
 }
 
-.host{
-  
+@keyframes glow {
+  from {
+    text-shadow: 0 0 30px #04cff7, 0 0 10px #04cff7;
+    font-size: 7vw;
+  }
+  to {
+    text-shadow: 0 0 20px #03ff5b;
+    font-size: 8vw;
+  }
 }
-
 .buttons > * {
-  margin-top: 1em; /* Adjust as needed */
+  margin-top: 1em; 
 }
 
 button {
@@ -48,8 +100,16 @@ button {
   line-height: 1;
   margin: 0.5em;
   padding: 1em 2em;
-  width: 100%; /* Make button width 100% of parent container */
+  width: 100%; 
   max-width: 300px; 
+  color: var(--color);
+  transition: 0.25s;
+  
+  &:hover,
+  &:focus { 
+    border-color: var(--hover);
+    color: #04cff7;
+  }
 }
 
 
@@ -71,13 +131,7 @@ button {
   }
 }
 $colors: (
-  fill: #a972cb,
   pulse: #03ff5b, 
-  close: #04cff7, 
-  raise: #ffa260, 
-  up: #e4cb58, 
-  slide: #8fc866, 
-  offset: #19bc8b
 );
 @each $button, $color in $colors {
   .#{$button} {
@@ -85,16 +139,7 @@ $colors: (
     --hover: #{adjust-hue($color, 45deg)};
   }
 }
-button {  
-  color: var(--color);
-  transition: 0.25s;
-  
-  &:hover,
-  &:focus { 
-    border-color: var(--hover);
-    color: #04cff7;
-  }
-}
+
 
 @keyframes pulse {
   0% { box-shadow: 0 0 0 0 var(--hover); }

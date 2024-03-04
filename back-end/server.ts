@@ -49,15 +49,16 @@ function addPlayerToLobby(lobby: Lobby, playerName: string): number {
 }
 
 function removePlayerFromLobby(lobbyId: string, playerId: number): void {
-  lobbies
-    .find((lobby) => lobby.id === lobbyId)
-    ?.players.filter((player) => player.id !== playerId);
-
-  lobbies
-    .find((lobby) => lobby.id === lobbyId)
-    ?.players.forEach((player) => {
-      console.log(player.name + ", ");
-    });
+  const lobby = findLobby(lobbyId);
+  if (lobby) {
+    const index = lobby.players.findIndex((player) => player.id === playerId);
+    if (index !== -1) {
+      lobby.players.splice(index, 1);
+    }
+  }
+}
+export function findLobby(lobbyId: string): Lobby | undefined {
+  return lobbies.find((lobby) => lobby.id === lobbyId);
 }
 
 // Define a route to create a new lobby

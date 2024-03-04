@@ -40,13 +40,16 @@ function addPlayerToLobby(lobby, playerName) {
     return newPlayer.id;
 }
 function removePlayerFromLobby(lobbyId, playerId) {
-    var _a, _b;
-    (_a = lobbies
-        .find((lobby) => lobby.id === lobbyId)) === null || _a === void 0 ? void 0 : _a.players.filter((player) => player.id !== playerId);
-    (_b = lobbies
-        .find((lobby) => lobby.id === lobbyId)) === null || _b === void 0 ? void 0 : _b.players.forEach((player) => {
-        console.log(player.name + ", ");
-    });
+    const lobby = findLobby(lobbyId);
+    if (lobby) {
+        const index = lobby.players.findIndex((player) => player.id === playerId);
+        if (index !== -1) {
+            lobby.players.splice(index, 1);
+        }
+    }
+}
+export function findLobby(lobbyId) {
+    return lobbies.find((lobby) => lobby.id === lobbyId);
 }
 // Define a route to create a new lobby
 app.post("/create-lobby", (req, res) => {

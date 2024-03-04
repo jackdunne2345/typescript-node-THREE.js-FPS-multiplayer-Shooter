@@ -32,6 +32,7 @@ const Join: React.FC<Props> = ({ back, Id }) => {
       <button
         onClick={() => {
           game.LeaveLobby();
+          game.LOBBY_STORE.emptyLobby();
           back("home");
         }}
       >

@@ -80,7 +80,7 @@ class Game {
       console.log(this.LOBBY);
     });
     this.SOCKET.on("player-left", (data) => {
-      this.LOBBY_STORE.removeFromLobby(data.id);
+      this.LOBBY_STORE.removeFromLobby(data.playerId);
 
       console.log(this.LOBBY);
     });
@@ -212,7 +212,7 @@ class Game {
   LeaveLobby() {
     this.SOCKET.emit("leave-lobby", {
       lobbyId: this.LOBBY_ID,
-      playerName: this.PLAYER.name,
+      playerId: this.PLAYER.id,
     });
     this.LOBBY = [];
     //need to reset the state of the game when this is done
