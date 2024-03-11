@@ -1,19 +1,24 @@
 
+$primary-color: #7d12ff; 
+$secondary-color: #200589; 
+$highlight-color:#ab20fd;
+$solid-color: #353a3b; 
+
 @font-face {
   font-family: 'RustFont';
-  src: local('RustFont'), url('./assets/font/Rust.ttf') format('truetype');
+  src: local('RustFont'), url('./assets/font/Optimus.otf') format('truetype');
 }
 .searchContainer {
   display: flex;
   flex-direction: row;
   margin: 0 auto;
   overflow: hidden; 
-  border: 2px solid #03ff5b; 
+  border: 2px solid $primary-color; 
   margin-bottom: 2.5%;
   &:hover,
   &:focus { 
     border-color: var(--hover);
-    color: #04cff7;
+    color: $secondary-color;
   }
 }
 
@@ -22,7 +27,7 @@
   border: none;
   outline: none; 
   width: 95%; 
- background-color: #353a3b;
+ background-color: $solid-color;
 }
 
 .searchButton {
@@ -31,43 +36,41 @@
   height: 100%;
   padding: 10px 20px; 
   border: none;
-  border-left: 2px solid #03ff5b ;
+  border-left: 2px solid $primary-color ;
   cursor: pointer;
   outline: none; 
   transition: background-color 0.5s ease;
   
 }
 body {
-  
   font-family: 'RustFont';
   justify-content: center;
   align-content: center;
   align-items: center;
   text-align: center;
-  min-height: 100vh;
   display: flex;
+  flex-direction: column;
 }
 .container {
-  color:#03ff5b,;
+  color:$primary-color,;
   font-family: 'RustFont';
-  background-color: #353a3b;
-  width: 50vh; /* Adjust as needed */
-  height: 50vh; /* Set height to 50% of the viewport height */
-  max-width: 800px; /* Adjust max-width as needed */
-  margin: auto; /* Center align the container */
-  padding: 5em; /* Adjust padding as needed */
+  background-color: $solid-color;
+  width: 50vh;
+  height: 50vh;
+  max-width: 800px; 
+  margin: auto; 
   display: flex;
-  flex-direction: column; /* Stack elements as a column */
-  border: 2px solid #03ff5b;
+  flex-direction: column; 
+  border: 2px solid $primary-color;
   justify-content: center;
   align-content: center;
-  align-items: center; /* Add a border with white color and 2px width */
+  align-items: center; 
 }
 
 .title {
   margin-bottom: 1vw;
-  background-color: #353a3b;
-  display: flex;
+  background-color: $solid-color;
+
   height:10vw;
   width: 40vw;
   font-family: 'RustFont';
@@ -75,45 +78,116 @@ body {
   justify-content: center;
   align-items: center;
   text-align: center;
-  font-size: 8vw;
-  animation: glow 2s ease-in-out infinite alternate;
+ 
+  animation: glow 1.5s ease-in-out infinite alternate;
 }
 
 @keyframes glow {
   from {
-    text-shadow: 0 0 30px #04cff7, 0 0 10px #04cff7;
+    text-shadow: 0 0 30px $primary-color, 0 0 10px $primary-color;
     font-size: 7vw;
   }
   to {
-    text-shadow: 0 0 20px #03ff5b;
+    text-shadow: 0 0 20px $highlight-color;
     font-size: 8vw;
   }
 }
-.buttons > * {
-  margin-top: 1em; 
+.home {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  padding: 0.5vw;
+  justify-content: center;
+  align-items: center;
+  
 }
-
-button {
-  background: none;
+.home button{
   border: 2px solid;
+  margin: 0.5vw;
   font: inherit;
-  line-height: 1;
-  margin: 0.5em;
   padding: 1em 2em;
   width: 100%; 
-  max-width: 300px; 
+}
+button {
+  border: 2px solid;
+  margin: 0.5vw;
+  align-items: center;
+  font: inherit;
+  
+  width: 100%; 
+
+  background: none;
   color: var(--color);
   transition: 0.25s;
-  
   &:hover,
   &:focus { 
     border-color: var(--hover);
-    color: #04cff7;
+    color: $highlight-color;
   }
 }
 
+.host{
+display: flex;
+flex-grow: 1;
+flex-direction: column;
+justify-content: flex-start;
+width: 100%;
+height: 100%;
+}
+.lobbyTop{
+  display: flex;
+width: 100%;
+align-self: flex-start;
+padding: 0.25vw;
 
-.pulse:hover, 
+flex-direction: column;
+}
+.lobbyTop button{
+width: 20%;
+margin: 0.1vw;
+}
+.lobbyTop p{
+  margin: 0.1vw;
+}
+.lobbyMid{
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height:50%;
+  align-self: center;
+  flex-grow: 1;
+  padding: 0.25vw;
+}
+.lobbyMid div{
+  display: flex;
+  flex-direction: row;
+  height:90%;
+  flex-direction: row;
+  
+}
+.lobbyMid ul{
+  height:100%;
+  width:50%;
+  display:flex;
+  flex-grow:1;
+  text-align: center;
+}
+.lobbyMid li{ 
+  min-height: 20%;
+  padding: 4px;
+}
+.lobbyMid p{
+  margin: 0.1vw;
+}
+.lobbyBtm{
+  display: flex;
+  width: 100%;
+  align-self: flex-end;
+  justify-content: center;
+  padding: 0.25vw;
+}
+.pulse:hover,
 .pulse:focus {
   animation: pulse 1s;
   box-shadow: 0 0 0 2em transparent;
@@ -131,7 +205,8 @@ button {
   }
 }
 $colors: (
-  pulse: #03ff5b, 
+  pulse: $primary-color, 
+
 );
 @each $button, $color in $colors {
   .#{$button} {

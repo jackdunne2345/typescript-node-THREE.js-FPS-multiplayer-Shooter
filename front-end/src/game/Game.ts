@@ -113,7 +113,7 @@ class Game {
         height: 100,
         debth: 0.1,
       },
-      color: 0x0000ff,
+      color: 0x200589,
       position: {
         x: 0,
         y: 0,
@@ -135,7 +135,7 @@ class Game {
         height: 50,
         debth: 1,
       },
-      color: 0x00ff00,
+      color: 0x7d12ff,
       position: {
         x: 0,
         y: 25,
@@ -225,12 +225,19 @@ class Game {
       this.GAMEWORLD.addProp(prop);
     }
   }
+
+  AnimateMainMenu() {
+    const animate = () => {
+      window.requestAnimationFrame(animate);
+      this.GAMEWORLD.renderThree();
+    };
+    animate();
+  }
   Animate() {
     const animate = () => {
       window.requestAnimationFrame(animate);
       this.CONTROLS.keyboardControls();
-      // DisplayPlayerPosition();
-      // CANNON_DEBUGGER.update();
+
       this.GAMEWORLD.render();
     };
     animate();

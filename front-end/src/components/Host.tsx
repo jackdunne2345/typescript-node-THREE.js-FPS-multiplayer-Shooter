@@ -21,30 +21,64 @@ const Host: React.FC<Props> = ({ back }) => {
     };
     if (!lobbyId) {
       createLobby();
+      console.log("use effect lobby length" + lobby.length);
     }
   }, []);
 
   return (
-    <div className={Styles.Host}>
-      <button
-        onClick={() => {
-          game.LeaveLobby();
-          game.LOBBY_STORE.emptyLobby();
-          back("home");
-        }}
-      >
-        Back
-      </button>
-      Join Code: {lobbyId}
-      <p>Players</p>
-      <ul className="list-group">
-        {lobby.map((player, index) => (
-          <li key={index} className="list-group-item">
-            {player.name}
-          </li>
-        ))}
-      </ul>
-      <button>Start Game</button>
+    <div className={Styles.host}>
+      <div className={Styles.lobbyTop}>
+        <button
+          onClick={() => {
+            game.LeaveLobby();
+            game.LOBBY_STORE.emptyLobby();
+            back("home");
+          }}
+        >
+          Back
+        </button>
+        <p> Join Code: {lobbyId}</p>
+      </div>
+      <div className={Styles.lobbyMid}>
+        <p>Players</p>
+        <div>
+          <ul className="list-group">
+            {lobby.map((player, index) => {
+              if (index % 2 == 0)
+                return (
+                  <li key={player.name} className="list-group-item">
+                    {player.name}
+                  </li>
+                );
+            })}{" "}
+            {lobby.length < 5 &&
+              new Array(5 - lobby.length)
+                .fill(null)
+                .map((index) => (
+                  <li key={index} className="list-group-item"></li>
+                ))}
+          </ul>
+          <ul className="list-group">
+            {lobby.map((player, index) => {
+              if (index % 2 > 0)
+                return (
+                  <li key={player.name} className="list-group-item">
+                    {player.name}
+                  </li>
+                );
+            })}{" "}
+            {lobby.length < 10 &&
+              new Array(5 - Math.floor(lobby.length / 2))
+                .fill(null)
+                .map((index) => (
+                  <li key={index + 11} className="list-group-item"></li>
+                ))}
+          </ul>
+        </div>
+      </div>
+      <div className={Styles.lobbyBtm}>
+        <button>Start Game</button>
+      </div>
     </div>
   );
 };
