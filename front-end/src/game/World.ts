@@ -2,48 +2,28 @@ import * as THREE from "three";
 import * as CANNON from "cannon-es";
 import { Prop } from "./PropStack";
 import { EnemyPlayer } from "./Characters";
+let cameraAngle: number = 0;
 
 export class World {
   public readonly scene: THREE.Scene;
   public readonly world: CANNON.World;
   public camera: THREE.PerspectiveCamera;
-  private renderer: THREE.WebGLRenderer;
+  public renderer: THREE.WebGLRenderer;
   private props: Prop[];
   private players: EnemyPlayer[];
-  private readonly skyboxGeo = new THREE.BoxGeometry(1000, 1000, 1200);
 
-  private readonly ft = new THREE.TextureLoader().load(
-    "/src/game/assets/textures/Skybox.jpg"
-  );
-  private readonly bk = new THREE.TextureLoader().load(
-    "/src/game/assets/textures/Skybox.jpg"
-  );
-  private readonly up = new THREE.TextureLoader().load(
-    "/src/game/assets/textures/Skybox.jpg"
-  );
-  private readonly dn = new THREE.TextureLoader().load(
-    "/src/game/assets/textures/Skybox.jpg"
-  );
-  private readonly rt = new THREE.TextureLoader().load(
-    "/src/game/assets/textures/Skybox.jpg"
-  );
-  private readonly lf = new THREE.TextureLoader().load(
-    "/src/game/assets/textures/Skybox.jpg"
-  );
-  private readonly skyBoxTextureArray: THREE.Texture[] = [
-    this.ft,
-    this.bk,
-    this.up,
-    this.dn,
-    this.rt,
-    this.lf,
+  private readonly skyBoxTextureArray: string[] = [
+    "/src/game/assets/textures/Skybox.jpg",
+    "/src/game/assets/textures/Skybox.jpg",
+    "/src/game/assets/textures/Skybox.jpg",
+    "/src/game/assets/textures/Skybox.jpg",
+    "/src/game/assets/textures/Skybox.jpg",
+    "/src/game/assets/textures/Skybox.jpg",
   ];
+  private currentAnimation: () => void;
 
-  private readonly skyBoxMesh: THREE.MeshBasicMaterial[] = this.createMeshArray(
-    this.skyBoxTextureArray
-  );
-  private readonly skybox = new THREE.Mesh(this.skyboxGeo, this.skyBoxMesh);
   constructor() {
+    this.currentAnimation = this.MenuAnimation;
     this.scene = new THREE.Scene();
     this.world = new CANNON.World({ gravity: new CANNON.Vec3(0, -20, 0) });
     this.camera = new THREE.PerspectiveCamera(
@@ -52,7 +32,7 @@ export class World {
       0.1,
       1000
     );
-    this.scene.add(this.skybox);
+
     this.camera.position.z = 20;
     this.props = [];
     this.players = [];
@@ -66,7 +46,7 @@ export class World {
       this.camera.updateProjectionMatrix();
       this.renderer.setSize(window.innerWidth, window.innerHeight);
     };
-
+    this.addSkybox(this.skyBoxTextureArray);
     window.addEventListener("resize", onWindowResize, false);
   }
   //for creating sky boxes in level editor, need to implement proper
@@ -83,35 +63,35 @@ export class World {
     }
     const skyBoxMesh: THREE.MeshBasicMaterial[] = createMeshArray(Array);
     const skyboxGeo = new THREE.BoxGeometry(1000, 1000, 1200);
-    const skybox = new THREE.Mesh(this.skyboxGeo, skyBoxMesh);
+    const skybox = new THREE.Mesh(skyboxGeo, skyBoxMesh);
     //add it to the prop stack once that is done
+    this.scene.add(skybox);
   }
-  render() {
+  SwitchAnimation() {
+    this.currentAnimation =
+      this.currentAnimation === this.MenuAnimation
+        ? this.GameAnimation
+        : this.MenuAnimation;
+  }
+  Render() {
+    this.currentAnimation();
     this.renderer.render(this.scene, this.camera);
+  }
+  GameAnimation(): void {
     this.world.fixedStep();
     this.props.forEach((prop) => {
       prop.syncPosition();
     });
   }
 
-  renderThree() {
-    this.camera = new THREE.PerspectiveCamera(
-      90,
-      window.innerWidth / window.innerHeight,
-      0.1,
-      1000
-    );
+  MenuAnimation(): void {
+    let camX = 70 * Math.cos(cameraAngle);
+    let camZ = 70 * Math.sin(cameraAngle);
     const lookat: THREE.Vector3 = new THREE.Vector3(0, 0, 0);
-
-    const animate = () => {
-      var camX = 70 * Math.cos(cameraAngle);
-      var camZ = 70 * Math.sin(cameraAngle);
-      this.camera.position.set(camX, 30, camZ);
-      this.camera.lookAt(lookat);
-      this.renderer.render(this.scene, this.camera);
-      cameraAngle += 0.002;
-    };
-    animate();
+    this.camera.position.set(camX, 30, camZ);
+    this.camera.lookAt(lookat);
+    this.renderer.render(this.scene, this.camera);
+    cameraAngle += 0.002;
   }
 
   addProp(obj: Prop) {
@@ -119,14 +99,4 @@ export class World {
     this.world.addBody(obj.body);
     this.props.push(obj);
   }
-  private createMeshArray(Array: THREE.Texture[]): THREE.MeshBasicMaterial[] {
-    const meshArray: THREE.MeshBasicMaterial[] = Array.map((texture) => {
-      return new THREE.MeshBasicMaterial({
-        map: texture,
-        side: THREE.BackSide,
-      });
-    });
-    return meshArray;
-  }
 }
-let cameraAngle: number = 0;

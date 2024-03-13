@@ -10,13 +10,13 @@ interface Props {
 const Host: React.FC<Props> = ({ back }) => {
   const [lobbyId, setLobbyId] = useState<string | null>(null);
   const lobby = useSyncExternalStore(
-    game.LOBBY_STORE.subscribe,
-    game.LOBBY_STORE.getSnapShot
+    game.LOBBY.LOBBY_STORE.subscribe,
+    game.LOBBY.LOBBY_STORE.getSnapShot
   );
   useEffect(() => {
     console.log("i fire once");
     const createLobby = async () => {
-      let lobbyId = await game.CreateLobby();
+      let lobbyId = await game.LOBBY.CreateLobby();
       setLobbyId(lobbyId);
     };
     if (!lobbyId) {
@@ -30,8 +30,8 @@ const Host: React.FC<Props> = ({ back }) => {
       <div className={Styles.lobbyTop}>
         <button
           onClick={() => {
-            game.LeaveLobby();
-            game.LOBBY_STORE.emptyLobby();
+            game.LOBBY.LeaveLobby();
+            game.LOBBY.LOBBY_STORE.emptyLobby();
             back("home");
           }}
         >
@@ -52,7 +52,7 @@ const Host: React.FC<Props> = ({ back }) => {
                 );
             })}{" "}
             {lobby.length < 5 &&
-              new Array(5 - lobby.length)
+              new Array(5 - Math.ceil(lobby.length / 2))
                 .fill(null)
                 .map((index) => (
                   <li key={index} className="list-group-item"></li>
@@ -77,7 +77,13 @@ const Host: React.FC<Props> = ({ back }) => {
         </div>
       </div>
       <div className={Styles.lobbyBtm}>
-        <button>Start Game</button>
+        <button
+          onClick={() => {
+            game.StartOrStop();
+          }}
+        >
+          Start Game
+        </button>
       </div>
     </div>
   );

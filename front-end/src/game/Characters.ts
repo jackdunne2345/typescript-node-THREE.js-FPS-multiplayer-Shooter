@@ -2,13 +2,13 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { PointerLockControls } from "three/examples/jsm/controls/PointerLockControls.js";
 import * as CANNON from "cannon-es";
+import { PlayerInterface } from "./Game";
 
 const material = new CANNON.Material({ friction: 0 });
 export class Player extends CANNON.Body {
   public moveSpeed: number;
-  public ID: number | null;
+  public interface: PlayerInterface;
   private health: number;
-  public name: string;
 
   constructor() {
     super({
@@ -17,21 +17,22 @@ export class Player extends CANNON.Body {
       mass: 10,
       material: material,
     });
-    this.ID = null;
+    this.interface = {
+      name: Math.random().toString(36).substr(2, 9),
+      id: null,
+    };
     this.moveSpeed = 15;
     this.health = 100;
-    this.name = Math.random().toString(36).substr(2, 9);
+
     this.angularDamping = 1;
   }
 }
 export class EnemyPlayer extends THREE.Object3D {
-  private playerId: number;
-  private playerName: string;
+  public interface: PlayerInterface;
   private loader = new GLTFLoader();
-  constructor(id: number, name: string) {
+  constructor(player: PlayerInterface) {
     super();
-    this.playerId = id;
-    this.playerName = name;
+    this.interface = player;
     this.loader.load("/src/game/assets/models/player.glb", (gltf) => {
       gltf.scene.scale.set(2.3, 2.3, 2.3);
       this.add(gltf.scene);
@@ -45,14 +46,16 @@ export class PlayerController {
   private cameraControls: PointerLockControls;
   private moveSpeed: number;
   private keys: { [key: string]: boolean } = {};
-
+  public active: boolean;
   constructor(player: Player, camera: THREE.PerspectiveCamera) {
     this.player = player;
     this.camera = camera;
     this.cameraControls = new PointerLockControls(this.camera, document.body);
     this.moveSpeed = this.player.moveSpeed;
+    this.active = false;
   }
   StartControls() {
+    this.active = this.active!;
     document.addEventListener("click", () => {
       this.cameraControls.lock();
 

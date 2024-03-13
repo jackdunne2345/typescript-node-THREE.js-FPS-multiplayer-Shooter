@@ -9,12 +9,22 @@ $solid-color: #353a3b;
   src: local('RustFont'), url('./assets/font/Optimus.otf') format('truetype');
 }
 .searchContainer {
+ 
+  margin: 0.5vw;
+  align-items: center;
+  font: inherit;
+  
+  width: 100%; 
+
+  background: none;
+  color: var(--color);
+  transition: 0.25s;
   display: flex;
   flex-direction: row;
-  margin: 0 auto;
-  overflow: hidden; 
+ 
+  
   border: 2px solid $primary-color; 
-  margin-bottom: 2.5%;
+  
   &:hover,
   &:focus { 
     border-color: var(--hover);
@@ -23,7 +33,7 @@ $solid-color: #353a3b;
 }
 
 .searchInput {
-  padding: 10px; 
+  
   border: none;
   outline: none; 
   width: 95%; 
@@ -43,6 +53,7 @@ $solid-color: #353a3b;
   
 }
 body {
+  position: relative;
   font-family: 'RustFont';
   justify-content: center;
   align-content: center;
@@ -52,7 +63,7 @@ body {
   flex-direction: column;
 }
 .container {
-  color:$primary-color,;
+  color:$primary-color;
   font-family: 'RustFont';
   background-color: $solid-color;
   width: 50vh;
@@ -68,17 +79,25 @@ body {
 }
 
 .title {
+  margin: auto; 
   margin-bottom: 1vw;
   background-color: $solid-color;
-
+  display: flex;
   height:10vw;
   width: 40vw;
+  min-height: 100px;
+  min-width: 400px;
   font-family: 'RustFont';
   text-transform: uppercase;
   justify-content: center;
   align-items: center;
   text-align: center;
- 
+  
+}
+.title p {
+  
+  min-width: 20vw;
+  text-align: center;
   animation: glow 1.5s ease-in-out infinite alternate;
 }
 
@@ -100,7 +119,6 @@ body {
   padding: 0.5vw;
   justify-content: center;
   align-items: center;
-  
 }
 .home button{
   border: 2px solid;

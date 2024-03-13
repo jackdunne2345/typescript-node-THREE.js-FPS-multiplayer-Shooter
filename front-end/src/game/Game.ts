@@ -1,109 +1,44 @@
 import * as WORLD from "./World";
 import * as CHARACTERS from "./Characters";
-import { Socket, io } from "socket.io-client";
-import axios from "axios";
+import Lobby from "./Lobby";
 import { PropAtributes, Stack, Prop } from "./PropStack";
 
-interface PlayerInterface {
+export interface PlayerInterface {
   name: string;
-  id: number;
+  id: number | null;
 }
 
-interface LobbyStore {
-  addToLobby(player: PlayerInterface): void;
-  removeFromLobby(id: number): void;
-  emptyLobby(): void;
-  subscribe(listener: () => void): () => void;
-  getSnapShot(): PlayerInterface[];
-  LOBBY: PlayerInterface[];
-}
+const testPlayer: PlayerInterface = {
+  name: "test",
+  id: null,
+};
 
 class Game {
+  public STARTGAME: boolean;
   private GAMEWORLD: WORLD.World;
   public PLAYER: CHARACTERS.Player;
-  private LOBBY: PlayerInterface[];
-  public LOBBY_LISTENERS: (() => void)[];
-  public LOBBY_STORE: LobbyStore;
-  private PLAYER2: CHARACTERS.EnemyPlayer;
+  public LOBBY: Lobby;
+
   private CONTROLS: CHARACTERS.PlayerController;
   private PROPSTACK: Stack<PropAtributes>;
   private PLANE: PropAtributes;
   private CUBE: PropAtributes;
-  private SOCKET: Socket;
-  private SERVER_URL = "http://localhost:3000";
-  public LOBBY_ID: string | null;
 
   constructor() {
-    this.LOBBY_ID = null;
-    this.LOBBY = [];
-    this.LOBBY_LISTENERS = [];
-    this.LOBBY_STORE = {
-      addToLobby: (player: PlayerInterface) => {
-        const newLob: PlayerInterface[] = [...this.LOBBY, player];
-        this.LOBBY = newLob;
-        emitChange.call(this);
-      },
-      removeFromLobby: (id: number) => {
-        const newLob: PlayerInterface[] = this.LOBBY.filter(
-          (player) => player.id !== id
-        );
-        this.LOBBY = newLob;
-        emitChange.call(this);
-      },
-      emptyLobby: () => {
-        const newLob: PlayerInterface[] = [];
-        this.LOBBY = newLob;
-        emitChange.call(this);
-      },
-      subscribe: (listener: () => void): (() => void) => {
-        this.LOBBY_LISTENERS = [...this.LOBBY_LISTENERS, listener];
-        return (): void => {
-          this.LOBBY_LISTENERS = this.LOBBY_LISTENERS.filter(
-            (l) => l !== listener
-          );
-        };
-      },
-      getSnapShot: () => this.LOBBY,
-      LOBBY: this.LOBBY,
-    };
-    function emitChange(this: Game) {
-      for (let listener of this.LOBBY_LISTENERS) {
-        listener();
-      }
-    }
-    this.SOCKET = io("http://localhost:3000");
-    this.SOCKET.on("player-joined", (data) => {
-      console.log("player joined=" + data.name + data.id);
-      const player: PlayerInterface = { name: data.name, id: data.id };
-
-      this.LOBBY_STORE.addToLobby(player);
-      console.log(this.LOBBY);
-    });
-    this.SOCKET.on("player-left", (data) => {
-      this.LOBBY_STORE.removeFromLobby(data.playerId);
-
-      console.log(this.LOBBY);
-    });
-    this.SOCKET.on("my-id", (data) => {
-      this.PLAYER.id = data.id;
-      console.log("you have joined the server your id is = " + data.id);
-    });
+    this.STARTGAME = false;
     this.GAMEWORLD = new WORLD.World();
     this.PLAYER = new CHARACTERS.Player();
+    this.LOBBY = new Lobby(this.PLAYER.interface);
     this.PLAYER.position.set(-5, 3, -5);
     this.PLAYER.fixedRotation = true;
-    this.PLAYER2 = new CHARACTERS.EnemyPlayer(
-      1,
-      Math.random().toString(36).substr(2, 9)
-    );
+
     this.GAMEWORLD.world.addBody(this.PLAYER);
-    this.GAMEWORLD.scene.add(this.PLAYER2);
-    this.PLAYER2.position.set(1, 0, -5);
+
     this.CONTROLS = new CHARACTERS.PlayerController(
       this.PLAYER,
       this.GAMEWORLD.camera
     );
-    // this.CONTROLS.StartControls();
+
     this.PROPSTACK = new Stack<PropAtributes>();
     this.PLANE = {
       id: 1,
@@ -154,69 +89,6 @@ class Game {
     this.InitProps(this.PROPSTACK);
   }
 
-  async CreateLobby() {
-    try {
-      // Send a POST request to the server to create a lobby
-      const response = await axios.post(`${this.SERVER_URL}/create-lobby`);
-      const data: string = JSON.stringify(response.data);
-
-      console.log("CreateLobby() data returned in http response=" + data);
-      this.LOBBY_ID = response.data.id;
-      await this.JoinLobby(this.LOBBY_ID!);
-    } catch (error: any) {
-      console.error("Error creating lobby:", error.message);
-    }
-
-    return this.LOBBY_ID;
-  }
-  async JoinLobby(lobbyId: string) {
-    this.LOBBY_ID = lobbyId;
-    const Join = async (lobbyId: string) => {
-      try {
-        const joinData = {
-          lobbyId: lobbyId,
-          playerName: this.PLAYER.name,
-        };
-        this.SOCKET.emit("join-lobby", joinData);
-        console.log(this.PLAYER.name);
-        console.log(this.LOBBY);
-
-        console.log("emmit");
-      } catch (error: any) {
-        console.error("Error joining the lobby:", error.message);
-      }
-    };
-
-    try {
-      await axios
-        .get(`${this.SERVER_URL}/lobbies/${lobbyId}`)
-        .then((response) => {
-          const string = JSON.stringify(response.data.players);
-
-          console.log(string);
-          const players = response.data.players;
-
-          const playersArray: PlayerInterface[] = players;
-
-          console.log("this is the lobby player json in get =");
-          playersArray.forEach((element: PlayerInterface) => {
-            this.LOBBY_STORE.addToLobby(element);
-          });
-        });
-      await Join(lobbyId);
-    } catch (error: any) {
-      console.error("Error getting lobby information:", error.message);
-      throw error;
-    }
-  }
-  LeaveLobby() {
-    this.SOCKET.emit("leave-lobby", {
-      lobbyId: this.LOBBY_ID,
-      playerId: this.PLAYER.id,
-    });
-    this.LOBBY = [];
-    //need to reset the state of the game when this is done
-  }
   //plan for a level editor
   InitProps(s: Stack<PropAtributes>) {
     while (!s.isEmpty()) {
@@ -225,22 +97,25 @@ class Game {
       this.GAMEWORLD.addProp(prop);
     }
   }
-
-  AnimateMainMenu() {
-    const animate = () => {
-      window.requestAnimationFrame(animate);
-      this.GAMEWORLD.renderThree();
+  StartOrStop() {
+    const initPlayers = () => {
+      this.LOBBY.ROOM.forEach((element) => {
+        if (element.id != this.PLAYER.id) {
+          const enemyPlayer = new CHARACTERS.EnemyPlayer(element);
+          enemyPlayer.position.set(-5, 3, -5);
+          this.GAMEWORLD.scene.add(enemyPlayer);
+        }
+      });
     };
-    animate();
+    this.GAMEWORLD.SwitchAnimation();
+    this.CONTROLS.StartControls();
+
+    initPlayers();
   }
-  Animate() {
-    const animate = () => {
-      window.requestAnimationFrame(animate);
-      this.CONTROLS.keyboardControls();
-
-      this.GAMEWORLD.render();
-    };
-    animate();
+  GameState() {
+    this.GAMEWORLD.Render();
+    this.CONTROLS.keyboardControls();
+    requestAnimationFrame(() => this.GameState());
   }
 }
 const game = new Game();

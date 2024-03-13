@@ -11,8 +11,8 @@ const Join: React.FC<Props> = ({ back, Id }) => {
   const [lobbyId, setLobbyId] = useState<string | null>(Id);
   const [error, setError] = useState<string | null>(null);
   const lobby = useSyncExternalStore(
-    game.LOBBY_STORE.subscribe,
-    game.LOBBY_STORE.getSnapShot
+    game.LOBBY.LOBBY_STORE.subscribe,
+    game.LOBBY.LOBBY_STORE.getSnapShot
   );
 
   useEffect(() => {
@@ -20,7 +20,7 @@ const Join: React.FC<Props> = ({ back, Id }) => {
     console.log("react useeffect join comp lobby id=" + lobbyId);
     console.log("i fire once");
     const joinLobby = async () => {
-      await game.JoinLobby(lobbyId!);
+      await game.LOBBY.JoinLobby(Id);
     };
     if (Id) {
       joinLobby();
@@ -31,8 +31,8 @@ const Join: React.FC<Props> = ({ back, Id }) => {
     <div className={Styles.Host}>
       <button
         onClick={() => {
-          game.LeaveLobby();
-          game.LOBBY_STORE.emptyLobby();
+          game.LOBBY.LeaveLobby();
+          game.LOBBY.LOBBY_STORE.emptyLobby();
           back("home");
         }}
       >

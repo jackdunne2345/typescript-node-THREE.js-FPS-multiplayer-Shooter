@@ -5,4 +5,4 @@ import Game from "./game/Game.ts";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(<App />);
 
-Game.AnimateMainMenu();
+Game.GameState();
