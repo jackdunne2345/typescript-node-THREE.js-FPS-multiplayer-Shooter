@@ -3,8 +3,11 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { PointerLockControls } from "three/examples/jsm/controls/PointerLockControls.js";
 import * as CANNON from "cannon-es";
 import { PlayerInterface } from "./Game";
+import SpriteText from "three-spritetext";
+import { Socket } from "socket.io-client";
 
-const material = new CANNON.Material({ friction: 0 });
+const material = new CANNON.Material({ friction: 0, restitution: 0 });
+
 export class Player extends CANNON.Body {
   public moveSpeed: number;
   public interface: PlayerInterface;
@@ -16,6 +19,8 @@ export class Player extends CANNON.Body {
       shape: new CANNON.Cylinder(1, 1, 4, 5),
       mass: 10,
       material: material,
+      collisionFilterGroup: 2,
+      collisionFilterMask: 1,
     });
     this.interface = {
       name: Math.random().toString(36).substr(2, 9),
@@ -27,27 +32,57 @@ export class Player extends CANNON.Body {
     this.angularDamping = 1;
   }
 }
-export class EnemyPlayer extends THREE.Object3D {
+export class EnemyPlayer {
   public interface: PlayerInterface;
+  public mesh: THREE.Object3D;
+  public body: CANNON.Body;
   private loader = new GLTFLoader();
-  constructor(player: PlayerInterface) {
-    super();
+  constructor(player: PlayerInterface, socket: Socket) {
+    this.mesh = new THREE.Object3D();
+    this.body = new CANNON.Body({
+      type: CANNON.Body.DYNAMIC,
+      shape: new CANNON.Cylinder(1, 1, 4, 5),
+      mass: 10,
+      material: material,
+      angularDamping: 1,
+      collisionFilterGroup: 3,
+      collisionFilterMask: 1,
+    });
     this.interface = player;
+    socket.on(this.interface.name, (data) => {
+      console.log("recived player velocity");
+      this.body.velocity.x = data.x;
+      this.body.velocity.y = data.y;
+      this.body.velocity.z = data.z;
+    });
+    const nameSprite = new SpriteText(this.interface.name);
+    nameSprite.scale.set(1.5, 1, 1);
+    nameSprite.position.y = 5;
+    this.mesh.add(nameSprite);
     this.loader.load("/src/game/assets/models/player.glb", (gltf) => {
       gltf.scene.scale.set(2.3, 2.3, 2.3);
-      this.add(gltf.scene);
+      this.mesh.add(gltf.scene);
     });
+  }
+  syncPosition() {
+    (this.mesh.position.x = this.body.position.x),
+      (this.mesh.position.y = this.body.position.y - 2),
+      (this.mesh.position.z = this.body.position.z);
   }
 }
 
 export class PlayerController {
+  private lastVelocity: CANNON.Vec3;
   private player: Player;
   private camera: THREE.PerspectiveCamera;
   private cameraControls: PointerLockControls;
   private moveSpeed: number;
+
   private keys: { [key: string]: boolean } = {};
   public active: boolean;
   constructor(player: Player, camera: THREE.PerspectiveCamera) {
+    this.lastVelocity = new CANNON.Vec3(0, 0, 0);
+
     this.player = player;
     this.camera = camera;
     this.cameraControls = new PointerLockControls(this.camera, document.body);
@@ -56,6 +91,10 @@ export class PlayerController {
   }
   StartControls() {
     this.active = this.active!;
+    // this.cameraControls.addEventListener("change", () => {
+    //   // Log the camera's rotation or any other relevant information
+    //   console.log("Camera rotation:", this.cameraControls.camera.rotation);
+    // });
     document.addEventListener("click", () => {
       this.cameraControls.lock();
 
@@ -68,13 +107,15 @@ export class PlayerController {
       });
     });
   }
-  keyboardControls() {
+  keyboardControls(socket: Socket) {
     this.camera.position.x = this.player.position.x;
     this.camera.position.y = this.player.position.y + 1.5;
     this.camera.position.z = this.player.position.z;
 
     const velocity = new CANNON.Vec3(0, 0, 0);
+
     const quaternion = this.cameraControls.getObject().quaternion;
+
     const forwardVector = new THREE.Vector3(0, 0, -1).applyQuaternion(
       quaternion
     );
@@ -103,16 +144,28 @@ export class PlayerController {
     }
     if (this.keys[" "]) {
       if (Math.abs(this.player.velocity.y) < 0.001) {
-        this.player.velocity.y += this.moveSpeed;
+        velocity.y += this.moveSpeed;
+        this.player.velocity.y += velocity.y;
       }
     }
-
-    if (this.player.velocity.y < 0) {
-      this.player.velocity.x = velocity.x;
-      this.player.velocity.z = velocity.z;
-    } else {
-      this.player.velocity.x = velocity.x;
-      this.player.velocity.z = velocity.z;
+    if (
+      this.lastVelocity.x !== velocity.x ||
+      this.lastVelocity.z !== velocity.z
+    ) {
+      console.log("player velocity has changed");
+      console.log("X :" + velocity.x);
+      console.log("Z :" + velocity.z);
+      socket.emit("movment", {
+        player: this.player.interface.name,
+        x: velocity.x,
+        y: velocity.y,
+        z: velocity.z,
+      });
+      this.lastVelocity.x = velocity.x;
+      this.lastVelocity.y = velocity.y;
+      this.lastVelocity.z = velocity.z;
     }
+    this.player.velocity.x = velocity.x;
+    this.player.velocity.z = velocity.z;
   }
 }

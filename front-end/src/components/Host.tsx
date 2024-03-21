@@ -5,23 +5,31 @@ import game from "../game/Game.ts";
 import { useEffect, useState, useSyncExternalStore } from "react";
 interface Props {
   back: (string: string) => void;
+  leader: boolean;
+  Id: string | null;
+  hide: () => void;
 }
 
-const Host: React.FC<Props> = ({ back }) => {
+const Host: React.FC<Props> = ({ back, leader, Id, hide }) => {
   const [lobbyId, setLobbyId] = useState<string | null>(null);
   const lobby = useSyncExternalStore(
     game.LOBBY.LOBBY_STORE.subscribe,
     game.LOBBY.LOBBY_STORE.getSnapShot
   );
   useEffect(() => {
-    console.log("i fire once");
     const createLobby = async () => {
-      let lobbyId = await game.LOBBY.CreateLobby();
+      let lobbyId = await game.CreateLobby();
       setLobbyId(lobbyId);
     };
-    if (!lobbyId) {
+    const joinLobby = async (id: string) => {
+      await game.JoinLobby(id!);
+    };
+    if (!lobbyId && leader) {
       createLobby();
       console.log("use effect lobby length" + lobby.length);
+    } else {
+      setLobbyId(Id);
+      joinLobby(Id!);
     }
   }, []);
 
@@ -30,7 +38,7 @@ const Host: React.FC<Props> = ({ back }) => {
       <div className={Styles.lobbyTop}>
         <button
           onClick={() => {
-            game.LOBBY.LeaveLobby();
+            game.LeaveLobby();
             game.LOBBY.LOBBY_STORE.emptyLobby();
             back("home");
           }}
@@ -53,9 +61,9 @@ const Host: React.FC<Props> = ({ back }) => {
             })}{" "}
             {lobby.length < 5 &&
               new Array(5 - Math.ceil(lobby.length / 2))
-                .fill(null)
-                .map((index) => (
-                  <li key={index} className="list-group-item"></li>
+                .fill("")
+                .map((_, index) => (
+                  <li key={`empty-${index}ye`} className="list-group-item"></li>
                 ))}
           </ul>
           <ul className="list-group">
@@ -70,8 +78,8 @@ const Host: React.FC<Props> = ({ back }) => {
             {lobby.length < 10 &&
               new Array(5 - Math.floor(lobby.length / 2))
                 .fill(null)
-                .map((index) => (
-                  <li key={index + 11} className="list-group-item"></li>
+                .map((_, index) => (
+                  <li key={`empty-${index}`} className="list-group-item"></li>
                 ))}
           </ul>
         </div>
@@ -79,7 +87,8 @@ const Host: React.FC<Props> = ({ back }) => {
       <div className={Styles.lobbyBtm}>
         <button
           onClick={() => {
-            game.StartOrStop();
+            game.Start();
+            hide();
           }}
         >
           Start Game

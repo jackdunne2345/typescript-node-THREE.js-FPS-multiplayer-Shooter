@@ -2,6 +2,7 @@ import * as THREE from "three";
 import * as CANNON from "cannon-es";
 import { Prop } from "./PropStack";
 import { EnemyPlayer } from "./Characters";
+
 let cameraAngle: number = 0;
 
 export class World {
@@ -10,7 +11,7 @@ export class World {
   public camera: THREE.PerspectiveCamera;
   public renderer: THREE.WebGLRenderer;
   private props: Prop[];
-  private players: EnemyPlayer[];
+  public ENEMIES: EnemyPlayer[];
 
   private readonly skyBoxTextureArray: string[] = [
     "/src/game/assets/textures/Skybox.jpg",
@@ -24,6 +25,7 @@ export class World {
 
   constructor() {
     this.currentAnimation = this.MenuAnimation;
+    this.ENEMIES = [];
     this.scene = new THREE.Scene();
     this.world = new CANNON.World({ gravity: new CANNON.Vec3(0, -20, 0) });
     this.camera = new THREE.PerspectiveCamera(
@@ -35,7 +37,6 @@ export class World {
 
     this.camera.position.z = 20;
     this.props = [];
-    this.players = [];
     this.camera.position.y = 2;
     this.renderer = new THREE.WebGLRenderer();
     this.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -46,11 +47,11 @@ export class World {
       this.camera.updateProjectionMatrix();
       this.renderer.setSize(window.innerWidth, window.innerHeight);
     };
-    this.addSkybox(this.skyBoxTextureArray);
+    this.AddSkyBox(this.skyBoxTextureArray);
     window.addEventListener("resize", onWindowResize, false);
   }
   //for creating sky boxes in level editor, need to implement proper
-  addSkybox(Array: string[]) {
+  AddSkyBox(Array: string[]) {
     function createMeshArray(Array: string[]): THREE.MeshBasicMaterial[] {
       const meshArray: THREE.MeshBasicMaterial[] = Array.map((path) => {
         const texture = new THREE.TextureLoader().load(path);
@@ -67,20 +68,41 @@ export class World {
     //add it to the prop stack once that is done
     this.scene.add(skybox);
   }
-  SwitchAnimation() {
+  SwitchAnimation(): void {
     this.currentAnimation =
       this.currentAnimation === this.MenuAnimation
         ? this.GameAnimation
         : this.MenuAnimation;
+    if ((this.currentAnimation = this.GameAnimation)) {
+      console.log("begin adding players");
+      this.InitGameWorld();
+    }
   }
-  Render() {
+  private InitGameWorld(): void {
+    this.ENEMIES.forEach((player) => {
+      console.log("Player added");
+      this.scene.add(player.mesh);
+      this.world.addBody(player.body);
+    });
+  }
+  RemovePlayer(id: number): void {
+    this.ENEMIES.forEach((p) => {
+      if (p.interface.id === id) {
+        console.log("removing player " + id + " from the scene");
+        this.scene.remove(p.mesh);
+        this.world.removeBody(p.body);
+      }
+    });
+  }
+
+  Render(): void {
     this.currentAnimation();
     this.renderer.render(this.scene, this.camera);
   }
   GameAnimation(): void {
     this.world.fixedStep();
-    this.props.forEach((prop) => {
-      prop.syncPosition();
+    this.ENEMIES.forEach((player) => {
+      player.syncPosition();
     });
   }
 

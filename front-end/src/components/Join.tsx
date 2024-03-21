@@ -20,7 +20,7 @@ const Join: React.FC<Props> = ({ back, Id }) => {
     console.log("react useeffect join comp lobby id=" + lobbyId);
     console.log("i fire once");
     const joinLobby = async () => {
-      await game.LOBBY.JoinLobby(Id);
+      await game.JoinLobby(Id);
     };
     if (Id) {
       joinLobby();
@@ -31,7 +31,7 @@ const Join: React.FC<Props> = ({ back, Id }) => {
     <div className={Styles.Host}>
       <button
         onClick={() => {
-          game.LOBBY.LeaveLobby();
+          game.LeaveLobby();
           game.LOBBY.LOBBY_STORE.emptyLobby();
           back("home");
         }}

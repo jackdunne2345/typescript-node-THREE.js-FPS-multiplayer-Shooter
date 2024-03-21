@@ -2,14 +2,12 @@ import express, { Request, Response } from "express";
 import { Server as SocketIOServer, Socket } from "socket.io";
 import { Lobby, Player } from "./lobby.js";
 
-// Create Express app and HTTP server
 const app = express();
 const port = 3000;
 const server = app.listen(port, () => {
   console.log(`Server is running on the port ${port}`);
 });
 
-// Initialize Socket.IO server
 const io = new SocketIOServer(server, {
   cors: {
     origin: "http://127.0.0.1:5173",
@@ -101,7 +99,7 @@ io.on("connection", (socket: Socket) => {
     if (lobby) {
       // Add the player to the lobby
       const num = addPlayerToLobby(lobby, playerName);
-
+      console.log("the player that joined id is" + num + " please emmit it");
       // Join the Socket.IO room corresponding to the lobby ID
       socket.join(lobbyId);
       socket.emit("my-id", { id: num });
@@ -130,4 +128,11 @@ io.on("connection", (socket: Socket) => {
   socket.on("disconnect", () => {
     console.log("A user disconnected");
   });
+  socket.on(
+    "movment",
+    (data: { player: string; x: number; y: number; z: number }) => {
+      // console.log("player :" + data.player + " emiited there location");
+      io.emit(data.player, { x: data.x, y: data.y, z: data.z });
+    }
+  );
 });
