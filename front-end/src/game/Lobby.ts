@@ -1,11 +1,11 @@
 import { PlayerInterface } from "./Game";
 
 interface LobbyStoreInterface {
-  addToLobby(player: PlayerInterface): void;
-  removeFromLobby(id: number): number;
-  emptyLobby(): void;
-  subscribe(listener: () => void): () => void;
-  getSnapShot(): PlayerInterface[];
+  AddToLobby(player: PlayerInterface): void;
+  RemoveFromLobby(id: number): number;
+  EmptyLobby(): void;
+  Subscribe(listener: () => void): () => void;
+  GetSnapShot(): PlayerInterface[];
   ROOM: PlayerInterface[];
 }
 
@@ -23,12 +23,12 @@ export default class Lobby {
     this.ROOM = [];
     this.LOBBY_LISTENERS = [];
     this.LOBBY_STORE = {
-      addToLobby: (player: PlayerInterface) => {
+      AddToLobby: (player: PlayerInterface) => {
         const newLob: PlayerInterface[] = [...this.ROOM, player];
         this.ROOM = newLob;
         emitChange.call(this);
       },
-      removeFromLobby: (id: number) => {
+      RemoveFromLobby: (id: number) => {
         const newLob: PlayerInterface[] = this.ROOM.filter((element) => {
           if (element.id === id) {
             player = element;
@@ -42,12 +42,12 @@ export default class Lobby {
         emitChange.call(this);
         return id;
       },
-      emptyLobby: () => {
+      EmptyLobby: () => {
         const newLob: PlayerInterface[] = [];
         this.ROOM = newLob;
         emitChange.call(this);
       },
-      subscribe: (listener: () => void): (() => void) => {
+      Subscribe: (listener: () => void): (() => void) => {
         this.LOBBY_LISTENERS = [...this.LOBBY_LISTENERS, listener];
         return (): void => {
           this.LOBBY_LISTENERS = this.LOBBY_LISTENERS.filter(
@@ -55,7 +55,7 @@ export default class Lobby {
           );
         };
       },
-      getSnapShot: () => this.ROOM,
+      GetSnapShot: () => this.ROOM,
       ROOM: this.ROOM,
     };
     function emitChange(this: Lobby) {

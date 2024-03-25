@@ -22,18 +22,18 @@ export type PropAtributes = {
 };
 
 export class Prop {
-  public mesh: THREE.Mesh;
-  public body: CANNON.Body;
+  public MESH: THREE.Mesh;
+  public BODY: CANNON.Body;
 
   constructor(atributes: PropAtributes) {
-    this.mesh = this.createMesh(atributes);
-    this.body = this.createBody(atributes, this.mesh);
+    this.MESH = this.CreateMesh(atributes);
+    this.BODY = this.CreateBody(atributes, this.MESH);
   }
 
-  private createMesh(atributes: PropAtributes) {
+  private CreateMesh(atributes: PropAtributes) {
     let material: THREE.MeshBasicMaterial;
     let geometry: THREE.PlaneGeometry | THREE.BoxGeometry;
-    let mesh: THREE.Mesh;
+    let MESH: THREE.Mesh;
     if (atributes.type === "PLANE") {
       geometry = new THREE.PlaneGeometry(
         atributes.geometry.width,
@@ -58,8 +58,8 @@ export class Prop {
     } else {
       material = new THREE.MeshBasicMaterial();
     }
-    mesh = new THREE.Mesh(geometry, material);
-    mesh.position.set(
+    MESH = new THREE.Mesh(geometry, material);
+    MESH.position.set(
       atributes.position.x,
       atributes.position.y,
       atributes.position.z
@@ -70,14 +70,14 @@ export class Prop {
       atributes.rotation.z,
       "XYZ"
     );
-    mesh.quaternion.setFromEuler(euler);
-    return mesh;
+    MESH.quaternion.setFromEuler(euler);
+    return MESH;
   }
 
-  private createBody(atributes: PropAtributes, mesh: THREE.Mesh) {
+  private CreateBody(atributes: PropAtributes, MESH: THREE.Mesh) {
     const material = new CANNON.Material({ friction: 0, restitution: 0 });
-    let body: CANNON.Body;
-    body = new CANNON.Body({
+    let BODY: CANNON.Body;
+    BODY = new CANNON.Body({
       mass: atributes.mass,
       type: atributes.dynamic ? CANNON.Body.DYNAMIC : CANNON.Body.STATIC,
       material: material,
@@ -85,30 +85,30 @@ export class Prop {
       collisionFilterMask: 2 | 3,
     });
 
-    let result = threeToCannon(mesh);
+    let result = threeToCannon(MESH);
     let { shape } = result!;
-    body.addShape(shape);
-    body.position.set(
+    BODY.addShape(shape);
+    BODY.position.set(
       atributes.position.x,
       atributes.position.y,
       atributes.position.z
     );
-    body.quaternion.setFromEuler(
+    BODY.quaternion.setFromEuler(
       atributes.rotation.x,
       atributes.rotation.y,
       atributes.rotation.z
     );
-    return body;
+    return BODY;
   }
 
-  syncPosition() {
-    this.mesh.position.x = this.body.position.x;
-    this.mesh.position.y = this.body.position.y;
-    this.mesh.position.z = this.body.position.z;
+  SyncPosition() {
+    this.MESH.position.x = this.BODY.position.x;
+    this.MESH.position.y = this.BODY.position.y;
+    this.MESH.position.z = this.BODY.position.z;
     let vec: CANNON.Vec3 = new CANNON.Vec3();
-    this.body.quaternion.toEuler(vec);
+    this.BODY.quaternion.toEuler(vec);
     let euler: THREE.Euler = new THREE.Euler(vec.x, vec.y, vec.z);
-    this.mesh.quaternion.setFromEuler(euler);
+    this.MESH.quaternion.setFromEuler(euler);
   }
 }
 

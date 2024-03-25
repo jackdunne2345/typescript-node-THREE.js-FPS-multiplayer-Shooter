@@ -1,37 +1,17 @@
 import "bootstrap/dist/css/bootstrap.css";
-import Styles from "../Styles.module.scss";
-import game from "../game/Game.ts";
+import Styles from "../styles/Host_style.module.scss";
+import game, { PlayerInterface } from "../game/Game.ts";
 
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect } from "react";
 interface Props {
   back: (string: string) => void;
-  leader: boolean;
-  Id: string | null;
   hide: () => void;
+  lobbyId: string | null;
+  lobby: PlayerInterface[];
 }
 
-const Host: React.FC<Props> = ({ back, leader, Id, hide }) => {
-  const [lobbyId, setLobbyId] = useState<string | null>(null);
-  const lobby = useSyncExternalStore(
-    game.LOBBY.LOBBY_STORE.subscribe,
-    game.LOBBY.LOBBY_STORE.getSnapShot
-  );
-  useEffect(() => {
-    const createLobby = async () => {
-      let lobbyId = await game.CreateLobby();
-      setLobbyId(lobbyId);
-    };
-    const joinLobby = async (id: string) => {
-      await game.JoinLobby(id!);
-    };
-    if (!lobbyId && leader) {
-      createLobby();
-      console.log("use effect lobby length" + lobby.length);
-    } else {
-      setLobbyId(Id);
-      joinLobby(Id!);
-    }
-  }, []);
+const Host: React.FC<Props> = ({ back, hide, lobbyId, lobby }) => {
+  useEffect(() => {}, []);
 
   return (
     <div className={Styles.host}>
@@ -39,7 +19,7 @@ const Host: React.FC<Props> = ({ back, leader, Id, hide }) => {
         <button
           onClick={() => {
             game.LeaveLobby();
-            game.LOBBY.LOBBY_STORE.emptyLobby();
+            game.LOBBY.LOBBY_STORE.EmptyLobby();
             back("home");
           }}
         >

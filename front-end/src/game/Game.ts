@@ -30,10 +30,10 @@ class Game {
     this.STARTGAME = false;
     this.GAMEWORLD = new WORLD.World();
     this.PLAYER = new CHARACTERS.Player();
-    this.LOBBY = new Lobby(this.PLAYER.interface);
+    this.LOBBY = new Lobby(this.PLAYER.INTERFACE);
     this.PLAYER.position.set(-5, 3, -5);
-    this.PLAYER.fixedRotation = true;
-    this.GAMEWORLD.world.addBody(this.PLAYER);
+
+    this.GAMEWORLD.P_WORLD.addBody(this.PLAYER);
 
     this.PROPSTACK = new Stack<PropAtributes>();
     this.PLANE = {
@@ -87,21 +87,29 @@ class Game {
     this.SOCKET.on("player-joined", (data) => {
       console.log("player joined=" + data.name + data.id);
       const player: PlayerInterface = { name: data.name, id: data.id };
-
-      this.LOBBY.LOBBY_STORE.addToLobby(player);
+      this.LOBBY.LOBBY_STORE.AddToLobby(player);
+      this.LOBBY.ROOM.forEach((element) => {
+        if (element.id !== this.PLAYER.INTERFACE.id) {
+          const enemyPlayer = new CHARACTERS.EnemyPlayer(element, this.SOCKET);
+          enemyPlayer.BODY.position.set(-5, 3, -5);
+          this.GAMEWORLD.ENEMIES.push(enemyPlayer);
+          this.GAMEWORLD.SCENE.add(enemyPlayer.MESH);
+          this.GAMEWORLD.P_WORLD.addBody(enemyPlayer.BODY);
+        }
+      });
     });
     this.SOCKET.on("player-left", (data) => {
       console.log("player left+ " + data.playerId);
-      let id = this.LOBBY.LOBBY_STORE.removeFromLobby(data.playerId);
+      let id = this.LOBBY.LOBBY_STORE.RemoveFromLobby(data.playerId);
       this.GAMEWORLD.RemovePlayer(id);
     });
     this.SOCKET.on("my-id", (data) => {
       console.log("cahnged id" + data.id);
-      this.PLAYER.interface.id = data.id;
+      this.PLAYER.INTERFACE.id = data.id;
     });
     this.CONTROLS = new CHARACTERS.PlayerController(
       this.PLAYER,
-      this.GAMEWORLD.camera
+      this.GAMEWORLD.CAMERA
     );
   }
 
@@ -110,22 +118,11 @@ class Game {
     while (!s.isEmpty()) {
       let p: PropAtributes = s.pop()!;
       let prop = new Prop(p);
-      this.GAMEWORLD.addProp(prop);
+      this.GAMEWORLD.AddProp(prop);
     }
   }
   Start() {
-    const initPlayers = () => {
-      this.LOBBY.ROOM.forEach((element) => {
-        if (element.id !== this.PLAYER.interface.id) {
-          const enemyPlayer = new CHARACTERS.EnemyPlayer(element, this.SOCKET);
-          enemyPlayer.body.position.set(-5, 3, -5);
-          this.GAMEWORLD.ENEMIES.push(enemyPlayer);
-        }
-      });
-    };
-    initPlayers();
     this.GAMEWORLD.SwitchAnimation();
-
     this.CONTROLS.StartControls();
   }
   GameState() {
@@ -140,6 +137,7 @@ class Game {
       const data: string = JSON.stringify(response.data);
       console.log("CreateLobby() data returned in http response=" + data);
       this.LOBBY.ID = response.data.id;
+      this.PLAYER.INTERFACE.id = 0;
       await this.JoinLobby(this.LOBBY.ID!);
     } catch (error: any) {
       console.error("Error creating lobby:", error.message);
@@ -175,7 +173,7 @@ class Game {
           const playersArray: PlayerInterface[] = players;
 
           playersArray.forEach((element: PlayerInterface) => {
-            this.LOBBY.LOBBY_STORE.addToLobby(element);
+            this.LOBBY.LOBBY_STORE.AddToLobby(element);
           });
         });
       await Join(lobbyId);
@@ -187,9 +185,9 @@ class Game {
   LeaveLobby() {
     this.SOCKET.emit("leave-lobby", {
       lobbyId: this.LOBBY.ID,
-      playerId: this.PLAYER.interface.id,
+      playerId: this.PLAYER.INTERFACE.id,
     });
-    this.LOBBY.ROOM = [];
+    this.LOBBY.LOBBY_STORE.EmptyLobby();
     //need to reset the state of the game when this is done
   }
 }

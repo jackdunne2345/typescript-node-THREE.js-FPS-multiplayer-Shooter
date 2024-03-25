@@ -2,15 +2,16 @@ import * as THREE from "three";
 import * as CANNON from "cannon-es";
 import { Prop } from "./PropStack";
 import { EnemyPlayer } from "./Characters";
+import { element } from "three/examples/jsm/nodes/shadernode/ShaderNode.js";
 
 let cameraAngle: number = 0;
 
 export class World {
-  public readonly scene: THREE.Scene;
-  public readonly world: CANNON.World;
-  public camera: THREE.PerspectiveCamera;
-  public renderer: THREE.WebGLRenderer;
-  private props: Prop[];
+  public readonly SCENE: THREE.Scene;
+  public readonly P_WORLD: CANNON.World;
+  public CAMERA: THREE.PerspectiveCamera;
+  public RENDERER: THREE.WebGLRenderer;
+  private PROPS: Prop[];
   public ENEMIES: EnemyPlayer[];
 
   private readonly skyBoxTextureArray: string[] = [
@@ -21,31 +22,31 @@ export class World {
     "/src/game/assets/textures/Skybox.jpg",
     "/src/game/assets/textures/Skybox.jpg",
   ];
-  private currentAnimation: () => void;
+  private CurrentAnimation: () => void;
 
   constructor() {
-    this.currentAnimation = this.MenuAnimation;
+    this.CurrentAnimation = this.MenuAnimation;
     this.ENEMIES = [];
-    this.scene = new THREE.Scene();
-    this.world = new CANNON.World({ gravity: new CANNON.Vec3(0, -20, 0) });
-    this.camera = new THREE.PerspectiveCamera(
+    this.SCENE = new THREE.Scene();
+    this.P_WORLD = new CANNON.World({ gravity: new CANNON.Vec3(0, -20, 0) });
+    this.CAMERA = new THREE.PerspectiveCamera(
       75,
       window.innerWidth / window.innerHeight,
       0.1,
       1000
     );
 
-    this.camera.position.z = 20;
-    this.props = [];
-    this.camera.position.y = 2;
-    this.renderer = new THREE.WebGLRenderer();
-    this.renderer.setSize(window.innerWidth, window.innerHeight);
-    document.body.appendChild(this.renderer.domElement);
-    this.scene.add(this.camera);
+    this.CAMERA.position.z = 20;
+    this.PROPS = [];
+    this.CAMERA.position.y = 2;
+    this.RENDERER = new THREE.WebGLRenderer();
+    this.RENDERER.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(this.RENDERER.domElement);
+    this.SCENE.add(this.CAMERA);
     const onWindowResize = () => {
-      this.camera.aspect = window.innerWidth / window.innerHeight;
-      this.camera.updateProjectionMatrix();
-      this.renderer.setSize(window.innerWidth, window.innerHeight);
+      this.CAMERA.aspect = window.innerWidth / window.innerHeight;
+      this.CAMERA.updateProjectionMatrix();
+      this.RENDERER.setSize(window.innerWidth, window.innerHeight);
     };
     this.AddSkyBox(this.skyBoxTextureArray);
     window.addEventListener("resize", onWindowResize, false);
@@ -66,59 +67,54 @@ export class World {
     const skyboxGeo = new THREE.BoxGeometry(1000, 1000, 1200);
     const skybox = new THREE.Mesh(skyboxGeo, skyBoxMesh);
     //add it to the prop stack once that is done
-    this.scene.add(skybox);
+    this.SCENE.add(skybox);
   }
   SwitchAnimation(): void {
-    this.currentAnimation =
-      this.currentAnimation === this.MenuAnimation
+    this.CurrentAnimation =
+      this.CurrentAnimation === this.MenuAnimation
         ? this.GameAnimation
         : this.MenuAnimation;
-    if ((this.currentAnimation = this.GameAnimation)) {
-      console.log("begin adding players");
-      this.InitGameWorld();
-    }
   }
-  private InitGameWorld(): void {
+  private AddPlayers(): void {
     this.ENEMIES.forEach((player) => {
       console.log("Player added");
-      this.scene.add(player.mesh);
-      this.world.addBody(player.body);
+      this.SCENE.add(player.MESH);
+      this.P_WORLD.addBody(player.BODY);
     });
   }
   RemovePlayer(id: number): void {
     this.ENEMIES.forEach((p) => {
-      if (p.interface.id === id) {
-        console.log("removing player " + id + " from the scene");
-        this.scene.remove(p.mesh);
-        this.world.removeBody(p.body);
+      if (p.INTERFACE.id === id) {
+        console.log("removing player " + id + " from the SCENE/P_WORLD");
+        this.SCENE.remove(p.MESH);
+        this.P_WORLD.removeBody(p.BODY);
       }
     });
   }
 
   Render(): void {
-    this.currentAnimation();
-    this.renderer.render(this.scene, this.camera);
-  }
-  GameAnimation(): void {
-    this.world.fixedStep();
-    this.ENEMIES.forEach((player) => {
-      player.syncPosition();
+    this.CurrentAnimation();
+    this.P_WORLD.fixedStep();
+    this.RENDERER.render(this.SCENE, this.CAMERA);
+    this.ENEMIES.forEach((e) => {
+      e.ApplyVelocity();
+      e.syncPosition();
     });
   }
+  GameAnimation(): void {}
 
   MenuAnimation(): void {
     let camX = 70 * Math.cos(cameraAngle);
     let camZ = 70 * Math.sin(cameraAngle);
     const lookat: THREE.Vector3 = new THREE.Vector3(0, 0, 0);
-    this.camera.position.set(camX, 30, camZ);
-    this.camera.lookAt(lookat);
-    this.renderer.render(this.scene, this.camera);
+    this.CAMERA.position.set(camX, 30, camZ);
+    this.CAMERA.lookAt(lookat);
     cameraAngle += 0.002;
   }
 
-  addProp(obj: Prop) {
-    this.scene.add(obj.mesh);
-    this.world.addBody(obj.body);
-    this.props.push(obj);
+  AddProp(obj: Prop) {
+    this.SCENE.add(obj.MESH);
+    this.P_WORLD.addBody(obj.BODY);
+    this.PROPS.push(obj);
   }
 }

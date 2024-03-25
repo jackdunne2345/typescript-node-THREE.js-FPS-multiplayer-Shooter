@@ -1,30 +1,21 @@
 
-$primary-color: #7d12ff; 
-$secondary-color: #350dd5; 
-$highlight-color:#ab20fd;
-$solid-color: #353a3b; 
+@import "variables";
 
 @font-face {
-  font-family: 'RustFont';
-  src: local('RustFont'), url('./assets/font/Optimus.otf') format('truetype');
+  font-family: 'FONT';
+  src: local('FONT'), url('../assets/font/Optimus.otf') format('truetype');
 }
 .searchContainer {
- 
   margin: 0.5vw;
   align-items: center;
   font: inherit;
-  
   width: 100%; 
-
   background: none;
   color: var(--color);
   transition: 0.25s;
   display: flex;
   flex-direction: row;
- 
-  
   border: 2px solid $primary-color; 
-  
   &:hover,
   &:focus { 
     border-color: var(--hover);
@@ -33,13 +24,14 @@ $solid-color: #353a3b;
 }
 
 .searchInput {
-  
   border: none;
   outline: none; 
   width: 95%; 
- background-color: $solid-color;
+  background-color: $solid-color;
 }
-
+body{
+  background-color: blue;
+}
 .searchButton {
   width:35%;
   flex-grow: 1;
@@ -52,9 +44,12 @@ $solid-color: #353a3b;
   transition: background-color 0.5s ease;
   
 }
-body {
+.container {
+ 
+  height: 100%;
+  width: 100%;
   position: relative;
-  font-family: 'RustFont';
+  font-family: 'FONT';
   justify-content: center;
   align-content: center;
   align-items: center;
@@ -62,9 +57,9 @@ body {
   display: flex;
   flex-direction: column;
 }
-.container {
+.containerBox {
   color:$primary-color;
-  font-family: 'RustFont';
+  font-family: 'FONT';
   background-color: $solid-color;
   width: 50vh;
   height: 50vh;
@@ -87,7 +82,7 @@ body {
   width: 40vw;
   min-height: 100px;
   min-width: 400px;
-  font-family: 'RustFont';
+  font-family: 'FONT';
   text-transform: uppercase;
   justify-content: center;
   align-items: center;
@@ -103,7 +98,7 @@ body {
 
 @keyframes glow {
   from {
-    text-shadow: 0 0 30px $primary-color, 0 0 10px $primary-color;
+    text-shadow: 0 0 30px $highlight-color, 0 0 10px $highlight-color;
     font-size: 7vw;
   }
   to {
@@ -120,7 +115,7 @@ body {
   justify-content: center;
   align-items: center;
 }
-.home button{
+ button{
   border: 2px solid;
   margin: 0.5vw;
   font: inherit;
@@ -145,66 +140,7 @@ button {
   }
 }
 
-.host{
-display: flex;
-flex-grow: 1;
-flex-direction: column;
-justify-content: flex-start;
-width: 100%;
-height: 100%;
-}
-.lobbyTop{
-  display: flex;
-width: 100%;
-align-self: flex-start;
-padding: 0.25vw;
 
-flex-direction: column;
-}
-.lobbyTop button{
-width: 20%;
-margin: 0.1vw;
-}
-.lobbyTop p{
-  margin: 0.1vw;
-}
-.lobbyMid{
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  height:50%;
-  align-self: center;
-  flex-grow: 1;
-  padding: 0.25vw;
-}
-.lobbyMid div{
-  display: flex;
-  flex-direction: row;
-  height:90%;
-  flex-direction: row;
-  
-}
-.lobbyMid ul{
-  height:100%;
-  width:50%;
-  display:flex;
-  flex-grow:1;
-  text-align: center;
-}
-.lobbyMid li{ 
-  min-height: 20%;
-  padding: 4px;
-}
-.lobbyMid p{
-  margin: 0.1vw;
-}
-.lobbyBtm{
-  display: flex;
-  width: 100%;
-  align-self: flex-end;
-  justify-content: center;
-  padding: 0.25vw;
-}
 .pulse:hover,
 .pulse:focus {
   animation: pulse 1s;
@@ -224,7 +160,6 @@ margin: 0.1vw;
 }
 $colors: (
   pulse: $primary-color, 
-
 );
 @each $button, $color in $colors {
   .#{$button} {

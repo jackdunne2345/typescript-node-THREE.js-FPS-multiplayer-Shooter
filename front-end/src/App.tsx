@@ -1,25 +1,47 @@
 import FadeIn from "react-fade-in";
-import Styles from "./Styles.module.scss";
+import Styles from "./styles/Styles.module.scss";
 import Host from "./components/Host";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
+import game from "./game/Game";
+import { join } from "path";
+import { Pause } from "./components/Pause";
 
 interface Props {}
 const App: React.FC<Props> = () => {
+  const createLobby = async () => {
+    let lobbyId = await game.CreateLobby();
+    setLobbyId(lobbyId);
+  };
+  const joinLobby = async (id: string) => {
+    await game.JoinLobby(id!);
+    setLobbyId(id);
+  };
   const [currentState, setCurrentState] = useState<string>("home");
+
+  const [showPause, setShowPause] = useState<boolean>(false);
   const [search, setSearch] = useState<boolean>(false);
   const [inputValue, setInputValue] = useState<string>("");
-  const [hide, sethide] = useState<boolean>(true);
+  const [hideMenu, setHideMenu] = useState<boolean>(true);
+  const [lobbyId, setLobbyId] = useState<string | null>(null);
+  const [inGame, setinGame] = useState<boolean>(false);
+  const lobby = useSyncExternalStore(
+    game.LOBBY.LOBBY_STORE.Subscribe,
+    game.LOBBY.LOBBY_STORE.GetSnapShot
+  );
   const handleKeyDown = (event: { key: string }) => {
-    if (event.key === "0") {
-      console.log("ughhhh");
-      sethide(true);
+    if (event.key === "Escape") {
+      console.log("esc key pressed");
+      handlePauseState();
     }
+  };
+  const handlePauseState = () => {
+    setShowPause(!showPause);
   };
   const handleChangeState = (state: string) => {
     setCurrentState(state);
   };
   const handleHideState = () => {
-    sethide(!hide);
+    setHideMenu(!hideMenu);
   };
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -30,44 +52,46 @@ const App: React.FC<Props> = () => {
   }, []);
 
   return (
-    <>
-      {hide && (
+    <div className={Styles.container}>
+      {!hideMenu &&
+        (showPause ? <Pause back={handlePauseState}></Pause> : <></>)}
+      {hideMenu && (
         <>
           <div className={Styles.title}>
             <p>InstaGib</p>
           </div>
-          <div className={Styles.container}>
+          <div className={Styles.containerBox}>
             {currentState === "home" && (
               <div className={Styles.home}>
                 <button
                   className={Styles.pulse}
                   id={Styles.hostButton}
-                  onClick={() => handleChangeState("host")}
+                  onClick={() => {
+                    createLobby();
+                    handleChangeState("gameLobby");
+                  }}
                 >
                   Host
                 </button>
                 {search ? (
-                  <FadeIn>
-                    <div
-                      className={`${Styles.searchContainer} ${Styles.pulse}`}
+                  <div className={`${Styles.searchContainer} ${Styles.pulse}`}>
+                    <input
+                      onChange={handleInputChange}
+                      type="text"
+                      className={Styles.searchInput}
+                      id="countrySearch"
+                      placeholder="Enter lobby code..."
+                    />
+                    <button
+                      className={Styles.searchButton}
+                      onClick={() => {
+                        joinLobby(inputValue);
+                        handleChangeState("gameLobby");
+                      }}
                     >
-                      <input
-                        onChange={handleInputChange}
-                        type="text"
-                        className={Styles.searchInput}
-                        id="countrySearch"
-                        placeholder="Enter lobby code..."
-                      />
-                      <button
-                        className={Styles.searchButton}
-                        onClick={() => {
-                          handleChangeState("join");
-                        }}
-                      >
-                        <span className={Styles.buttonContent}>Search</span>
-                      </button>
-                    </div>
-                  </FadeIn>
+                      <span className={Styles.buttonContent}>Search</span>
+                    </button>
+                  </div>
                 ) : (
                   <button
                     className={Styles.pulse}
@@ -83,27 +107,20 @@ const App: React.FC<Props> = () => {
                 </button>
               </div>
             )}
-            {currentState === "host" && (
+            {currentState === "gameLobby" && (
               <Host
                 back={handleChangeState}
-                leader={true}
-                Id={null}
                 hide={handleHideState}
+                lobbyId={lobbyId}
+                lobby={lobby}
               />
             )}
-            {currentState === "join" && (
-              <Host
-                back={handleChangeState}
-                leader={false}
-                Id={inputValue}
-                hide={handleHideState}
-              />
-            )}
+
             {/*  */}
           </div>
         </>
       )}
-    </>
+    </div>
   );
 };
 export default App;
