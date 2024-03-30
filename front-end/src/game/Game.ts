@@ -10,31 +10,25 @@ export interface PlayerInterface {
   id: number | null;
 }
 
-const testPlayer: PlayerInterface = {
-  name: "test",
-  id: null,
-};
-
 class Game {
   public STARTGAME: boolean;
   private GAMEWORLD: WORLD.World;
   public PLAYER: CHARACTERS.Player;
   public LOBBY: Lobby;
   private SOCKET: Socket;
-  private CONTROLS: CHARACTERS.PlayerController;
+  public CONTROLS: CHARACTERS.PlayerController;
   private PROPSTACK: Stack<PropAtributes>;
   private PLANE: PropAtributes;
   private CUBE: PropAtributes;
   private SERVER_URL = "http://localhost:3000";
+
   constructor() {
     this.STARTGAME = false;
     this.GAMEWORLD = new WORLD.World();
     this.PLAYER = new CHARACTERS.Player();
     this.LOBBY = new Lobby(this.PLAYER.INTERFACE);
     this.PLAYER.position.set(-5, 3, -5);
-
     this.GAMEWORLD.P_WORLD.addBody(this.PLAYER);
-
     this.PROPSTACK = new Stack<PropAtributes>();
     this.PLANE = {
       id: 1,
@@ -123,12 +117,15 @@ class Game {
   }
   Start() {
     this.GAMEWORLD.SwitchAnimation();
-    this.CONTROLS.StartControls();
+    this.CONTROLS.TogleControls();
   }
   GameState() {
     this.GAMEWORLD.Render();
     this.CONTROLS.keyboardControls(this.SOCKET);
     requestAnimationFrame(() => this.GameState());
+  }
+  public ToggleControlls() {
+    this.CONTROLS.TogleControls();
   }
 
   async CreateLobby() {

@@ -7,6 +7,12 @@ import SpriteText from "three-spritetext";
 import { Socket } from "socket.io-client";
 
 const material = new CANNON.Material({ friction: 0, restitution: 0 });
+interface PauseStore {
+  PAUSE: boolean;
+  GetSnapShot(): boolean;
+  Subscribe(listener: () => void): () => void;
+  SetPause: (f: boolean) => void;
+}
 
 export class Player extends CANNON.Body {
   public MOVE_SPEED: number;
@@ -92,37 +98,57 @@ export class PlayerController {
   private lastVelocity: CANNON.Vec3;
   private player: Player;
   private camera: THREE.PerspectiveCamera;
-  private cameraControls: PointerLockControls;
+  public cameraControls: PointerLockControls;
   private MOVE_SPEED: number;
-
   private keys: { [key: string]: boolean } = {};
   public active: boolean;
+  public PAUSE_STORE: PauseStore;
+  private PAUSE: boolean = true;
+  private PAUSE_LISTENERS: (() => void)[];
   constructor(player: Player, camera: THREE.PerspectiveCamera) {
     this.lastVelocity = new CANNON.Vec3(0, 0, 0);
-
+    this.PAUSE_LISTENERS = [];
+    this.PAUSE_STORE = {
+      PAUSE: this.PAUSE,
+      GetSnapShot: () => this.PAUSE,
+      Subscribe: (listener: () => void): (() => void) => {
+        this.PAUSE_LISTENERS = [...this.PAUSE_LISTENERS, listener];
+        return (): void => {
+          this.PAUSE_LISTENERS = this.PAUSE_LISTENERS.filter(
+            (l) => l !== listener
+          );
+        };
+      },
+      SetPause: (t: boolean) => {
+        this.PAUSE = t;
+        emitChange.call(this);
+      },
+    };
+    function emitChange(this: PlayerController) {
+      for (let listener of this.PAUSE_LISTENERS) {
+        listener();
+      }
+    }
     this.player = player;
     this.camera = camera;
     this.cameraControls = new PointerLockControls(this.camera, document.body);
+
+    this.cameraControls.addEventListener("unlock", () => {
+      this.PAUSE_STORE.SetPause(!this.PAUSE);
+    });
     this.MOVE_SPEED = this.player.MOVE_SPEED;
     this.active = false;
   }
-  StartControls() {
-    this.active = this.active!;
-    // this.cameraControls.addEventListener("change", () => {
-    //   // Log the camera's rotation or any other relevant information
-    //   console.log("Camera rotation:", this.cameraControls.camera.rotation);
-    // });
-    document.addEventListener("click", () => {
-      this.cameraControls.lock();
-
-      document.addEventListener("keydown", (event) => {
-        this.keys[event.key] = true;
-      });
-
-      document.addEventListener("keyup", (event) => {
-        this.keys[event.key] = false;
-      });
+  TogleControls() {
+    this.cameraControls.lock();
+    document.addEventListener("keydown", (event) => {
+      if (!this.PAUSE) this.keys[event.key] = true;
     });
+
+    document.addEventListener("keyup", (event) => {
+      this.keys[event.key] = false;
+    });
+    this.PAUSE_STORE.SetPause(!this.PAUSE);
   }
   keyboardControls(socket: Socket) {
     let isJumping: boolean = false;

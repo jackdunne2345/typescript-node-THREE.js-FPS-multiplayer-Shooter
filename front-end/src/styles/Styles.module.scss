@@ -45,7 +45,6 @@ body{
   
 }
 .container {
- 
   height: 100%;
   width: 100%;
   position: relative;
@@ -56,10 +55,24 @@ body{
   text-align: center;
   display: flex;
   flex-direction: column;
+  button {
+    margin:0.25%;
+    border: 2px solid;
+    align-items: center;
+    padding: 1em 2em;
+    width: 100%; 
+    background: none;
+    color: var(--color);
+    transition: 0.25s;
+    &:hover,
+    &:focus { 
+      border-color: var(--hover);
+      color: $highlight-color;
+    }
+  }
 }
 .containerBox {
   color:$primary-color;
-  font-family: 'FONT';
   background-color: $solid-color;
   width: 50vh;
   height: 50vh;
@@ -71,6 +84,7 @@ body{
   justify-content: center;
   align-content: center;
   align-items: center; 
+  
 }
 
 .title {
@@ -82,7 +96,6 @@ body{
   width: 40vw;
   min-height: 100px;
   min-width: 400px;
-  font-family: 'FONT';
   text-transform: uppercase;
   justify-content: center;
   align-items: center;
@@ -90,7 +103,6 @@ body{
   
 }
 .title p {
-  
   min-width: 20vw;
   text-align: center;
   animation: glow 1.5s ease-in-out infinite alternate;
@@ -115,30 +127,8 @@ body{
   justify-content: center;
   align-items: center;
 }
- button{
-  border: 2px solid;
-  margin: 0.5vw;
-  font: inherit;
-  padding: 1em 2em;
-  width: 100%; 
-}
-button {
-  border: 2px solid;
-  margin: 0.5vw;
-  align-items: center;
-  font: inherit;
-  
-  width: 100%; 
 
-  background: none;
-  color: var(--color);
-  transition: 0.25s;
-  &:hover,
-  &:focus { 
-    border-color: var(--hover);
-    color: $highlight-color;
-  }
-}
+
 
 
 .pulse:hover,
@@ -159,7 +149,7 @@ button {
   }
 }
 $colors: (
-  pulse: $primary-color, 
+  pulse: $primary-color 
 );
 @each $button, $color in $colors {
   .#{$button} {
@@ -170,31 +160,13 @@ $colors: (
 
 
 @keyframes pulse {
-  0% { box-shadow: 0 0 0 0 var(--hover); }
+  0% { box-shadow: 0 0 0 0 var(--hover);
+   }
 }
 
 
 /* Media queries for responsiveness */
 /* For screens smaller than 600px */
-@media (max-width: 600px) {
-  .buttons {
-    flex-direction: column;
-    align-items: center;
-  }
 
-  button {
-    margin-bottom: 10px;
-  }
-}
 
-/* For screens between 600px and 900px */
-@media (min-width: 600px) and (max-width: 900px) {
-  .buttons {
-    flex-wrap: wrap;
-  }
 
-  button {
-    flex: 1 1 45%;
-    margin: 5px;
-  }
-}

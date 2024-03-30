@@ -1,9 +1,7 @@
-import FadeIn from "react-fade-in";
 import Styles from "./styles/Styles.module.scss";
-import Host from "./components/Host";
+import Lobby from "./components/Lobby";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import game from "./game/Game";
-import { join } from "path";
 import { Pause } from "./components/Pause";
 
 interface Props {}
@@ -18,25 +16,19 @@ const App: React.FC<Props> = () => {
   };
   const [currentState, setCurrentState] = useState<string>("home");
 
-  const [showPause, setShowPause] = useState<boolean>(false);
   const [search, setSearch] = useState<boolean>(false);
   const [inputValue, setInputValue] = useState<string>("");
-  const [hideMenu, setHideMenu] = useState<boolean>(true);
+  const [hideMenu, setHideMenu] = useState<boolean>(false);
   const [lobbyId, setLobbyId] = useState<string | null>(null);
-  const [inGame, setinGame] = useState<boolean>(false);
+  const pause = useSyncExternalStore(
+    game.CONTROLS.PAUSE_STORE.Subscribe,
+    game.CONTROLS.PAUSE_STORE.GetSnapShot
+  );
   const lobby = useSyncExternalStore(
     game.LOBBY.LOBBY_STORE.Subscribe,
     game.LOBBY.LOBBY_STORE.GetSnapShot
   );
-  const handleKeyDown = (event: { key: string }) => {
-    if (event.key === "Escape") {
-      console.log("esc key pressed");
-      handlePauseState();
-    }
-  };
-  const handlePauseState = () => {
-    setShowPause(!showPause);
-  };
+
   const handleChangeState = (state: string) => {
     setCurrentState(state);
   };
@@ -47,15 +39,12 @@ const App: React.FC<Props> = () => {
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(event.target.value);
   };
-  useEffect(() => {
-    document.addEventListener("keydown", handleKeyDown);
-  }, []);
+  useEffect(() => {}, []);
 
   return (
     <div className={Styles.container}>
-      {!hideMenu &&
-        (showPause ? <Pause back={handlePauseState}></Pause> : <></>)}
-      {hideMenu && (
+      {hideMenu && pause && <Pause></Pause>}
+      {!hideMenu && (
         <>
           <div className={Styles.title}>
             <p>InstaGib</p>
@@ -108,7 +97,7 @@ const App: React.FC<Props> = () => {
               </div>
             )}
             {currentState === "gameLobby" && (
-              <Host
+              <Lobby
                 back={handleChangeState}
                 hide={handleHideState}
                 lobbyId={lobbyId}

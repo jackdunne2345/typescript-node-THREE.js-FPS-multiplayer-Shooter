@@ -10,9 +10,7 @@ interface Props {
   lobby: PlayerInterface[];
 }
 
-const Host: React.FC<Props> = ({ back, hide, lobbyId, lobby }) => {
-  useEffect(() => {}, []);
-
+const Lobby: React.FC<Props> = ({ back, hide, lobbyId, lobby }) => {
   return (
     <div className={Styles.host}>
       <div className={Styles.lobbyTop}>
@@ -77,4 +75,4 @@ const Host: React.FC<Props> = ({ back, hide, lobbyId, lobby }) => {
     </div>
   );
 };
-export default Host;
+export default Lobby;

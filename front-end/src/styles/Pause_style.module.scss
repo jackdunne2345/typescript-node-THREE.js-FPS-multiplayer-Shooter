@@ -18,13 +18,11 @@
     button{
         color: $primary-color;
         margin-bottom: 2%;
-        display:block;
+       
         
     }
 }
-.pauseDiv button .animationDone  {
-    display: block; 
-  }
+
 @keyframes grow {
     from {
       width:0px;
