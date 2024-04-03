@@ -1,32 +1,25 @@
 import * as WORLD from "./World";
 import * as CHARACTERS from "./Characters";
-import Lobby from "./Lobby";
+import { gState } from "./State";
 import { PropAtributes, Stack, Prop } from "./PropStack";
 import { Socket, io } from "socket.io-client";
 import axios from "axios";
-
-export interface PlayerInterface {
-  name: string;
-  id: number | null;
-}
+import { PlayerProp, Setting } from "./Types";
 
 class Game {
-  public STARTGAME: boolean;
+  public SETTINGS: Setting;
   private GAMEWORLD: WORLD.World;
-  public PLAYER: CHARACTERS.Player;
-  public LOBBY: Lobby;
+  private PLAYER: CHARACTERS.Player;
   private SOCKET: Socket;
-  public CONTROLS: CHARACTERS.PlayerController;
+  private CONTROLS: CHARACTERS.PlayerController;
   private PROPSTACK: Stack<PropAtributes>;
   private PLANE: PropAtributes;
   private CUBE: PropAtributes;
   private SERVER_URL = "http://localhost:3000";
-
   constructor() {
-    this.STARTGAME = false;
+    this.SETTINGS = this.AddSettings();
     this.GAMEWORLD = new WORLD.World();
     this.PLAYER = new CHARACTERS.Player();
-    this.LOBBY = new Lobby(this.PLAYER.INTERFACE);
     this.PLAYER.position.set(-5, 3, -5);
     this.GAMEWORLD.P_WORLD.addBody(this.PLAYER);
     this.PROPSTACK = new Stack<PropAtributes>();
@@ -80,9 +73,9 @@ class Game {
     this.SOCKET = io("http://localhost:3000");
     this.SOCKET.on("player-joined", (data) => {
       console.log("player joined=" + data.name + data.id);
-      const player: PlayerInterface = { name: data.name, id: data.id };
-      this.LOBBY.LOBBY_STORE.AddToLobby(player);
-      this.LOBBY.ROOM.forEach((element) => {
+      const player: PlayerProp = { name: data.name, id: data.id };
+      gState.LOBBY_STORE.AddToLobby(player);
+      gState.ROOM.forEach((element: PlayerProp) => {
         if (element.id !== this.PLAYER.INTERFACE.id) {
           const enemyPlayer = new CHARACTERS.EnemyPlayer(element, this.SOCKET);
           enemyPlayer.BODY.position.set(-5, 3, -5);
@@ -94,7 +87,7 @@ class Game {
     });
     this.SOCKET.on("player-left", (data) => {
       console.log("player left+ " + data.playerId);
-      let id = this.LOBBY.LOBBY_STORE.RemoveFromLobby(data.playerId);
+      let id = gState.LOBBY_STORE.RemoveFromLobby(data.playerId);
       this.GAMEWORLD.RemovePlayer(id);
     });
     this.SOCKET.on("my-id", (data) => {
@@ -133,26 +126,24 @@ class Game {
       const response = await axios.post(`${this.SERVER_URL}/create-lobby`);
       const data: string = JSON.stringify(response.data);
       console.log("CreateLobby() data returned in http response=" + data);
-      this.LOBBY.ID = response.data.id;
+      gState.LOBBY_ID = response.data.id;
       this.PLAYER.INTERFACE.id = 0;
-      await this.JoinLobby(this.LOBBY.ID!);
+      await this.JoinLobby(gState.LOBBY_ID!);
     } catch (error: any) {
       console.error("Error creating lobby:", error.message);
     }
 
-    return this.LOBBY.ID;
+    return gState.LOBBY_ID;
   }
   async JoinLobby(lobbyId: string) {
-    this.LOBBY.ID = lobbyId;
+    gState.LOBBY_ID = lobbyId;
     const Join = async (lobbyId: string) => {
       try {
         const joinData = {
           lobbyId: lobbyId,
-          playerName: this.LOBBY.PLAYER.name,
+          playerName: this.PLAYER.INTERFACE.name,
         };
         this.SOCKET.emit("join-lobby", joinData);
-
-        console.log(this.LOBBY.ROOM);
       } catch (error: any) {
         console.error("Error joining the lobby:", error.message);
       }
@@ -167,10 +158,10 @@ class Game {
           console.log(string);
           const players = response.data.players;
 
-          const playersArray: PlayerInterface[] = players;
+          const playersArray: PlayerProp[] = players;
 
-          playersArray.forEach((element: PlayerInterface) => {
-            this.LOBBY.LOBBY_STORE.AddToLobby(element);
+          playersArray.forEach((element: PlayerProp) => {
+            gState.LOBBY_STORE.AddToLobby(element);
           });
         });
       await Join(lobbyId);
@@ -181,11 +172,42 @@ class Game {
   }
   LeaveLobby() {
     this.SOCKET.emit("leave-lobby", {
-      lobbyId: this.LOBBY.ID,
+      lobbyId: gState.LOBBY_ID,
       playerId: this.PLAYER.INTERFACE.id,
     });
-    this.LOBBY.LOBBY_STORE.EmptyLobby();
+    gState.LOBBY_STORE.EmptyLobby();
     //need to reset the state of the game when this is done
+  }
+
+  private AddSettings() {
+    const settings = localStorage.getItem("userSettings");
+    if (!settings) {
+      const s: Setting = {
+        control: {
+          forward: "w",
+          back: "s",
+          left: "a",
+          right: "d",
+        },
+        setting: {
+          fov: 100,
+          sensitivty: 1,
+        },
+      };
+      const jsonString = JSON.stringify(s);
+
+      localStorage.setItem("userSettings", jsonString);
+
+      console.log("Data saved to local storage.");
+      return s;
+    } else {
+      console.log("read settings data");
+      return JSON.parse(settings);
+    }
+  }
+
+  public ChangeSettings(s: Setting) {
+    this.SETTINGS = s;
   }
 }
 const game = new Game();

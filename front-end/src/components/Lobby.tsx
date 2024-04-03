@@ -1,13 +1,13 @@
 import "bootstrap/dist/css/bootstrap.css";
 import Styles from "../styles/Host_style.module.scss";
-import game, { PlayerInterface } from "../game/Game.ts";
+import game from "../game/Game.ts";
+import { PlayerProp } from "../game/Types.ts";
 
-import { useEffect } from "react";
 interface Props {
   back: (string: string) => void;
   hide: () => void;
   lobbyId: string | null;
-  lobby: PlayerInterface[];
+  lobby: PlayerProp[];
 }
 
 const Lobby: React.FC<Props> = ({ back, hide, lobbyId, lobby }) => {
@@ -17,7 +17,6 @@ const Lobby: React.FC<Props> = ({ back, hide, lobbyId, lobby }) => {
         <button
           onClick={() => {
             game.LeaveLobby();
-            game.LOBBY.LOBBY_STORE.EmptyLobby();
             back("home");
           }}
         >

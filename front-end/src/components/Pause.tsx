@@ -1,9 +1,17 @@
 import Styles from "../styles/Pause_style.module.scss";
 import game from "../game/Game";
 import { useEffect, useState } from "react";
-
-export const Pause = () => {
+import { Settings } from "./Settings";
+type prop = {
+  setPause: React.Dispatch<React.SetStateAction<boolean>>;
+  setHome: React.Dispatch<React.SetStateAction<string>>;
+};
+export const Pause = (p: prop) => {
   const [showButton, setShowButton] = useState<boolean>(false);
+  const [showSettings, setShowSettings] = useState<boolean>(false);
+  const handleReturnBack = () => {
+    setShowSettings(false);
+  };
   useEffect(() => {
     setTimeout(() => {
       console.log;
@@ -13,6 +21,8 @@ export const Pause = () => {
 
   return (
     <div className={Styles.pauseDiv}>
+      {showSettings && <Settings Return={handleReturnBack}></Settings>}
+
       {showButton && (
         <div>
           {" "}
@@ -23,7 +33,24 @@ export const Pause = () => {
           >
             Resume
           </button>
-          <button>Settings</button> <button>Leave game</button>
+          <button
+            onClick={() => {
+              setShowButton(false);
+              setShowSettings(true);
+            }}
+          >
+            Settings
+          </button>{" "}
+          <button
+            onClick={() => {
+              game.LeaveLobby();
+              game.Start();
+              p.setPause(false);
+              p.setHome("home");
+            }}
+          >
+            Leave game
+          </button>
         </div>
       )}
     </div>

@@ -1,11 +1,12 @@
 import Styles from "./styles/Styles.module.scss";
 import Lobby from "./components/Lobby";
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useState, useSyncExternalStore } from "react";
 import game from "./game/Game";
+import { gState } from "./game/State";
 import { Pause } from "./components/Pause";
+import { Settings } from "./components/Settings";
 
-interface Props {}
-const App: React.FC<Props> = () => {
+const App = () => {
   const createLobby = async () => {
     let lobbyId = await game.CreateLobby();
     setLobbyId(lobbyId);
@@ -21,29 +22,23 @@ const App: React.FC<Props> = () => {
   const [hideMenu, setHideMenu] = useState<boolean>(false);
   const [lobbyId, setLobbyId] = useState<string | null>(null);
   const pause = useSyncExternalStore(
-    game.CONTROLS.PAUSE_STORE.Subscribe,
-    game.CONTROLS.PAUSE_STORE.GetSnapShot
+    gState.PAUSE_STORE.Subscribe,
+    gState.PAUSE_STORE.GetSnapShot
   );
   const lobby = useSyncExternalStore(
-    game.LOBBY.LOBBY_STORE.Subscribe,
-    game.LOBBY.LOBBY_STORE.GetSnapShot
+    gState.LOBBY_STORE.Subscribe,
+    gState.LOBBY_STORE.GetSnapShot
   );
-
-  const handleChangeState = (state: string) => {
-    setCurrentState(state);
-  };
-  const handleHideState = () => {
-    setHideMenu(!hideMenu);
-  };
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(event.target.value);
   };
-  useEffect(() => {}, []);
 
   return (
     <div className={Styles.container}>
-      {hideMenu && pause && <Pause></Pause>}
+      {hideMenu && pause && (
+        <Pause setPause={setHideMenu} setHome={setCurrentState}></Pause>
+      )}
       {!hideMenu && (
         <>
           <div className={Styles.title}>
@@ -57,7 +52,7 @@ const App: React.FC<Props> = () => {
                   id={Styles.hostButton}
                   onClick={() => {
                     createLobby();
-                    handleChangeState("gameLobby");
+                    setCurrentState("gameLobby");
                   }}
                 >
                   Host
@@ -75,7 +70,7 @@ const App: React.FC<Props> = () => {
                       className={Styles.searchButton}
                       onClick={() => {
                         joinLobby(inputValue);
-                        handleChangeState("gameLobby");
+                        setCurrentState("gameLobby");
                       }}
                     >
                       <span className={Styles.buttonContent}>Search</span>
@@ -91,17 +86,32 @@ const App: React.FC<Props> = () => {
                   </button>
                 )}
 
-                <button className={Styles.pulse} id={Styles.settingButton}>
+                <button
+                  onClick={() => setCurrentState("setting")}
+                  className={Styles.pulse}
+                  id={Styles.settingButton}
+                >
                   Settings
                 </button>
               </div>
             )}
             {currentState === "gameLobby" && (
               <Lobby
-                back={handleChangeState}
-                hide={handleHideState}
+                back={(p: string) => {
+                  setCurrentState(p);
+                }}
+                hide={() => {
+                  setHideMenu(!hideMenu);
+                }}
                 lobbyId={lobbyId}
                 lobby={lobby}
+              />
+            )}
+            {currentState === "setting" && (
+              <Settings
+                Return={() => {
+                  setCurrentState("home");
+                }}
               />
             )}
 

@@ -1,0 +1,12 @@
+{ 
+    "control":{
+        "forward":"w",
+        "back":"s",
+        "left":"a",
+        "right":"d"
+    },
+    "setting":{
+        "fov":"100",
+        "sensitivty":"1"
+    }
+}
