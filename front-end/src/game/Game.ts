@@ -4,10 +4,9 @@ import { gState } from "./State";
 import { PropAtributes, Stack, Prop } from "./PropStack";
 import { Socket, io } from "socket.io-client";
 import axios from "axios";
-import { PlayerProp, Setting } from "./Types";
+import { PlayerProp } from "./Types";
 
 class Game {
-  public SETTINGS: Setting;
   private GAMEWORLD: WORLD.World;
   private PLAYER: CHARACTERS.Player;
   private SOCKET: Socket;
@@ -17,7 +16,6 @@ class Game {
   private CUBE: PropAtributes;
   private SERVER_URL = "http://localhost:3000";
   constructor() {
-    this.SETTINGS = this.AddSettings();
     this.GAMEWORLD = new WORLD.World();
     this.PLAYER = new CHARACTERS.Player();
     this.PLAYER.position.set(-5, 3, -5);
@@ -121,7 +119,7 @@ class Game {
     this.CONTROLS.TogleControls();
   }
 
-  async CreateLobby() {
+  async CreateLobby(): Promise<string> {
     try {
       const response = await axios.post(`${this.SERVER_URL}/create-lobby`);
       const data: string = JSON.stringify(response.data);
@@ -135,7 +133,7 @@ class Game {
 
     return gState.LOBBY_ID;
   }
-  async JoinLobby(lobbyId: string) {
+  async JoinLobby(lobbyId: string): Promise<string> {
     gState.LOBBY_ID = lobbyId;
     const Join = async (lobbyId: string) => {
       try {
@@ -155,7 +153,7 @@ class Game {
         .then((response) => {
           const string = JSON.stringify(response.data.players);
 
-          console.log(string);
+          console.log("this is the respone of the join " + string);
           const players = response.data.players;
 
           const playersArray: PlayerProp[] = players;
@@ -169,6 +167,7 @@ class Game {
       console.error("Error getting lobby information:", error.message);
       throw error;
     }
+    return gState.LOBBY_ID;
   }
   LeaveLobby() {
     this.SOCKET.emit("leave-lobby", {
@@ -178,37 +177,8 @@ class Game {
     gState.LOBBY_STORE.EmptyLobby();
     //need to reset the state of the game when this is done
   }
-
-  private AddSettings() {
-    const settings = localStorage.getItem("userSettings");
-    if (!settings) {
-      const s: Setting = {
-        control: {
-          forward: "w",
-          back: "s",
-          left: "a",
-          right: "d",
-        },
-        setting: {
-          fov: 100,
-          sensitivty: 1,
-        },
-      };
-      const jsonString = JSON.stringify(s);
-
-      localStorage.setItem("userSettings", jsonString);
-
-      console.log("Data saved to local storage.");
-      return s;
-    } else {
-      console.log("read settings data");
-      return JSON.parse(settings);
-    }
-  }
-
-  public ChangeSettings(s: Setting) {
-    this.SETTINGS = s;
-  }
 }
+
 const game = new Game();
+
 export default game;

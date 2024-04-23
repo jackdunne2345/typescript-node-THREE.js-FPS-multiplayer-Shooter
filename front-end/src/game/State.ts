@@ -1,4 +1,4 @@
-import { PlayerProp, LobbyStore, PauseStore } from "./Types";
+import { PlayerProp, LobbyStore, PauseStore, Setting } from "./Types";
 
 class GameState {
   private PAUSE_LISTENERS: (() => void)[];
@@ -22,10 +22,24 @@ class GameState {
   public get ROOM(): PlayerProp[] {
     return this._ROOM;
   }
+  private _SETTINGS: Setting;
+  public SETTINGS_LISTENERS: (() => void)[];
+  public get SETTINGS(): Setting {
+    return this._SETTINGS;
+  }
+  public set SETTINGS(value: Setting) {
+    this._SETTINGS = value;
+    const jsonString = JSON.stringify(value);
 
+    localStorage.setItem("userSettings", jsonString);
+    this.EmmitSettingsChange();
+    console.log("Data saved to local storage.");
+  }
   private LOBBY_LISTENERS: (() => void)[];
   public LOBBY_STORE: LobbyStore;
   constructor() {
+    this._SETTINGS = this.AddSettings();
+    this.SETTINGS_LISTENERS = [];
     //************/
     this.PAUSE_LISTENERS = [];
     this._PAUSE = true;
@@ -58,7 +72,7 @@ class GameState {
       AddToLobby: (player: PlayerProp) => {
         const newLob: PlayerProp[] = [...this.ROOM, player];
         this._ROOM = newLob;
-        emitChange.call(this);
+        EmitChange.call(this);
       },
       RemoveFromLobby: (id: number) => {
         const newLob: PlayerProp[] = this.ROOM.filter((element) => {
@@ -69,13 +83,13 @@ class GameState {
         });
 
         this._ROOM = newLob;
-        emitChange.call(this);
+        EmitChange.call(this);
         return id;
       },
       EmptyLobby: () => {
         const newLob: PlayerProp[] = [];
         this._ROOM = newLob;
-        emitChange.call(this);
+        EmitChange.call(this);
       },
       Subscribe: (listener: () => void): (() => void) => {
         this.LOBBY_LISTENERS = [...this.LOBBY_LISTENERS, listener];
@@ -88,10 +102,41 @@ class GameState {
       GetSnapShot: () => this.ROOM,
       ROOM: this.ROOM,
     };
-    function emitChange(this: GameState) {
+    function EmitChange(this: GameState) {
       for (let listener of this.LOBBY_LISTENERS) {
         listener();
       }
+    }
+  }
+  private AddSettings(): Setting {
+    const settings = localStorage.getItem("userSettings");
+    if (!settings) {
+      const s: Setting = {
+        control: {
+          forward: "w",
+          back: "s",
+          left: "a",
+          right: "d",
+        },
+        setting: {
+          fov: 100,
+          sensitivty: 1.01,
+        },
+      };
+      const jsonString = JSON.stringify(s);
+
+      localStorage.setItem("userSettings", jsonString);
+
+      console.log("Data saved to local storage.");
+      return s;
+    } else {
+      console.log("read settings data");
+      return JSON.parse(settings);
+    }
+  }
+  private EmmitSettingsChange() {
+    for (let listener of this.SETTINGS_LISTENERS) {
+      listener();
     }
   }
 }

@@ -1,21 +1,33 @@
-import Styles from "./styles/Styles.module.scss";
 import Lobby from "./components/Lobby";
 import { useState, useSyncExternalStore } from "react";
 import game from "./game/Game";
 import { gState } from "./game/State";
 import { Pause } from "./components/Pause";
 import { Settings } from "./components/Settings";
+import { Login } from "./components/Login";
 
 const App = () => {
   const createLobby = async () => {
-    let lobbyId = await game.CreateLobby();
-    setLobbyId(lobbyId);
+    try {
+      await game.CreateLobby().then((id) => setLobbyId(id));
+      setCurrentState("gameLobby");
+    } catch (e) {
+      setLobbyId(null);
+      console.log("oh no we have an error: " + e);
+    }
   };
   const joinLobby = async (id: string) => {
-    await game.JoinLobby(id!);
-    setLobbyId(id);
+    try {
+      await game.JoinLobby(id!).then((id: string) => {
+        setCurrentState("gameLobby");
+        setLobbyId(id);
+      });
+    } catch (e) {
+      setLobbyId(null);
+      console.log("oh no we have an error: " + e);
+    }
   };
-  const [currentState, setCurrentState] = useState<string>("home");
+  const [currentState, setCurrentState] = useState<string>("login");
 
   const [search, setSearch] = useState<boolean>(false);
   const [inputValue, setInputValue] = useState<string>("");
@@ -35,61 +47,54 @@ const App = () => {
   };
 
   return (
-    <div className={Styles.container}>
+    <>
       {hideMenu && pause && (
         <Pause setPause={setHideMenu} setHome={setCurrentState}></Pause>
       )}
       {!hideMenu && (
         <>
-          <div className={Styles.title}>
+          <div className="title">
             <p>InstaGib</p>
           </div>
-          <div className={Styles.containerBox}>
+          <div className="containerBox">
+            {currentState === "login" && <Login back={setCurrentState}></Login>}
             {currentState === "home" && (
-              <div className={Styles.home}>
+              <div className="home">
                 <button
-                  className={Styles.pulse}
-                  id={Styles.hostButton}
+                  id="hostButton"
                   onClick={() => {
                     createLobby();
-                    setCurrentState("gameLobby");
                   }}
                 >
                   Host
                 </button>
                 {search ? (
-                  <div className={`${Styles.searchContainer} ${Styles.pulse}`}>
+                  <div className="searchContainer">
                     <input
                       onChange={handleInputChange}
                       type="text"
-                      className={Styles.searchInput}
+                      className="searchInput"
                       id="countrySearch"
                       placeholder="Enter lobby code..."
                     />
                     <button
-                      className={Styles.searchButton}
+                      className="searchButton"
                       onClick={() => {
                         joinLobby(inputValue);
-                        setCurrentState("gameLobby");
                       }}
                     >
-                      <span className={Styles.buttonContent}>Search</span>
+                      <span className="buttonContent">Search</span>
                     </button>
                   </div>
                 ) : (
-                  <button
-                    className={Styles.pulse}
-                    id={Styles.joinButton}
-                    onClick={() => setSearch(!search)}
-                  >
+                  <button id="joinButton" onClick={() => setSearch(!search)}>
                     Join
                   </button>
                 )}
 
                 <button
                   onClick={() => setCurrentState("setting")}
-                  className={Styles.pulse}
-                  id={Styles.settingButton}
+                  id="settingButton"
                 >
                   Settings
                 </button>
@@ -119,7 +124,7 @@ const App = () => {
           </div>
         </>
       )}
-    </div>
+    </>
   );
 };
 export default App;

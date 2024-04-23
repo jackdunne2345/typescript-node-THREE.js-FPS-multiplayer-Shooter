@@ -4,32 +4,47 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "concurrently --kill-others \"npm run compile:sass\" \"npm run vite\" \"npm run nodemon\" ",
     "build": "tsc && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
-    "test": "jest --watchAll --verbose"
+    "test": "jest --watchAll --verbose",
+    "compile:sass": "node-sass --watch src/styles/Styles.module.scss src/styles/styles.css",
+    "vite": "npx vite",
+    "nodemon": "nodemon ../back-end/public/server.mjs"
   },
   "dependencies": {
+    "axios": "1.6.7",
     "bootstrap": "^5.2.3",
     "cannon-es": "^0.20.0",
+    "express": "^4.18.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-fade-in": "^2.0.1",
+    "socket.io": "^4.7.4",
     "three": "^0.162.0",
     "three-spritetext": "^1.8.2",
-    "three-to-cannon": "^5.0.1"
+    "three-to-cannon": "^5.0.1",
+    "socket.io-client": "^4.7.5"
   },
   "devDependencies": {
+    "@types/cannon": "0.1.12",
+    "@types/express": "4.17.21",
     "@types/jest": "^29.5.12",
     "@types/react": "^18.2.15",
     "@types/react-dom": "^18.2.7",
+    "@types/socket.io": "3.0.2",
+    "@types/three": "0.155.1",
+    "@types/websocket": "1.0.6",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
     "@vitejs/plugin-react": "^4.0.3",
+    "concurrently": "^8.2.2",
     "eslint": "^8.45.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.3",
+    "node-sass": "^9.0.0",
+    "nodemon": "^3.1.0",
+    "socket.io-client": "^4.7.5",
     "typescript": "^5.0.2",
     "vite": "^4.4.5"
   }

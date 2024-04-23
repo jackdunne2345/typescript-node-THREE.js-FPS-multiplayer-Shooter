@@ -2,7 +2,7 @@ import * as THREE from "three";
 import * as CANNON from "cannon-es";
 import { Prop } from "./PropStack";
 import { EnemyPlayer } from "./Characters";
-import { element } from "three/examples/jsm/nodes/shadernode/ShaderNode.js";
+import { gState } from "./State";
 
 let cameraAngle: number = 0;
 
@@ -30,12 +30,11 @@ export class World {
     this.SCENE = new THREE.Scene();
     this.P_WORLD = new CANNON.World({ gravity: new CANNON.Vec3(0, -20, 0) });
     this.CAMERA = new THREE.PerspectiveCamera(
-      75,
+      gState.SETTINGS.setting.fov,
       window.innerWidth / window.innerHeight,
       0.1,
       1000
     );
-
     this.CAMERA.position.z = 20;
     this.PROPS = [];
     this.CAMERA.position.y = 2;
@@ -48,9 +47,16 @@ export class World {
       this.CAMERA.updateProjectionMatrix();
       this.RENDERER.setSize(window.innerWidth, window.innerHeight);
     };
+    const camera = this.CAMERA;
+    const changeFov = () => {
+      camera.fov = gState.SETTINGS.setting.fov;
+      camera.updateProjectionMatrix();
+    };
+    gState.SETTINGS_LISTENERS.push(changeFov);
     this.AddSkyBox(this.skyBoxTextureArray);
     window.addEventListener("resize", onWindowResize, false);
   }
+
   //for creating sky boxes in level editor, need to implement proper
   AddSkyBox(Array: string[]) {
     function createMeshArray(Array: string[]): THREE.MeshBasicMaterial[] {

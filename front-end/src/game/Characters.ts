@@ -99,14 +99,17 @@ export class PlayerController {
 
   constructor(player: Player, camera: THREE.PerspectiveCamera) {
     this.lastVelocity = new CANNON.Vec3(0, 0, 0);
-
     this.player = player;
     this.camera = camera;
     this.cameraControls = new PointerLockControls(this.camera, document.body);
-
     this.cameraControls.addEventListener("unlock", () => {
       gState.PAUSE_STORE.SetPause(!gState.PAUSE);
     });
+    const control = this.cameraControls;
+    const updateSensitivity = () => {
+      control.pointerSpeed = gState.SETTINGS.setting.sensitivty;
+    };
+    gState.SETTINGS_LISTENERS.push(updateSensitivity);
     this.MOVE_SPEED = this.player.MOVE_SPEED;
     this.active = false;
   }
@@ -135,22 +138,34 @@ export class PlayerController {
       quaternion
     );
 
-    if (this.keys["w"] || this.keys["W"]) {
+    if (
+      this.keys[gState.SETTINGS.control.forward] ||
+      this.keys[gState.SETTINGS.control.forward.toLocaleUpperCase()]
+    ) {
       velocity.x = forwardVector.x * this.MOVE_SPEED;
       velocity.z = forwardVector.z * this.MOVE_SPEED;
     }
-    if (this.keys["s"] || this.keys["S"]) {
+    if (
+      this.keys[gState.SETTINGS.control.back] ||
+      this.keys[gState.SETTINGS.control.back.toLocaleUpperCase()]
+    ) {
       velocity.x = -forwardVector.x * this.MOVE_SPEED;
       velocity.z = -forwardVector.z * this.MOVE_SPEED;
     }
-    if (this.keys["a"] || this.keys["A"]) {
+    if (
+      this.keys[gState.SETTINGS.control.left] ||
+      this.keys[gState.SETTINGS.control.left.toLocaleUpperCase()]
+    ) {
       const rightVector = forwardVector
         .clone()
         .applyAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI / 2);
       velocity.x = velocity.x + rightVector.x * this.MOVE_SPEED;
       velocity.z = velocity.z + rightVector.z * this.MOVE_SPEED;
     }
-    if (this.keys["d"] || this.keys["D"]) {
+    if (
+      this.keys[gState.SETTINGS.control.right] ||
+      this.keys[gState.SETTINGS.control.right.toLocaleUpperCase()]
+    ) {
       const leftVector = forwardVector
         .clone()
         .applyAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI / 2);
@@ -167,6 +182,7 @@ export class PlayerController {
 
     this.player.velocity.x = velocity.x;
     this.player.velocity.z = velocity.z;
+
     if (
       this.lastVelocity.x !== this.player.velocity.x ||
       this.lastVelocity.z !== this.player.velocity.z ||
