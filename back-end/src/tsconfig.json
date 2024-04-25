@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "target": "ES6",                                  
+    "module": "ESNext",  
+    "outDir": "../public",                           
+    "esModuleInterop": true,                            
+    "forceConsistentCasingInFileNames": true,            
+    "strict": true,                                    
+    "moduleResolution": "node",
+    "skipLibCheck": true                                 
+  }
+}
