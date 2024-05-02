@@ -76,7 +76,7 @@ class GameState {
       },
       RemoveFromLobby: (id: number) => {
         const newLob: PlayerProp[] = this.ROOM.filter((element) => {
-          if (element.id === id) {
+          if (element.gameId === id) {
             return false;
           }
           return true;
@@ -89,6 +89,7 @@ class GameState {
       EmptyLobby: () => {
         const newLob: PlayerProp[] = [];
         this._ROOM = newLob;
+        this._LOBBY_ID = "";
         EmitChange.call(this);
       },
       Subscribe: (listener: () => void): (() => void) => {

@@ -1,9 +1,9 @@
 export interface Player {
+  gameId: number;
   name: string;
-  id: number;
 }
 
-export interface Lobby {
-  id: string;
+export interface LobbyResponse {
+  lobbyId: string;
   players: Player[];
 }

@@ -1,24 +1,25 @@
 import { useEffect, useState } from "react";
 import Style from "../styles/Alert.module.scss";
+import { ServerError } from "../game/Types";
 type Props = {
-  Component: JSX.Element[];
+  Alerts: ServerError[];
 };
 
 export const Alert = (p: Props) => {
-  const [component, setComponent] = useState<JSX.Element | undefined>();
+  const [alert, setAlert] = useState<{ error: string } | undefined>();
   useEffect(() => {
-    setComponent(p.Component.pop());
+    setAlert(p.Alerts.pop());
   }, []);
 
   return (
     <>
-      {component && (
+      {alert && (
         <div className={Style.alert}>
           <div>
-            {component}
+            {alert.error}
             <button
               onClick={() => {
-                setComponent(p.Component.pop());
+                setAlert(p.Alerts.pop());
               }}
             >
               OK

@@ -1,25 +1,25 @@
-export type PlayerProp = {
+export interface PlayerProp {
+  gameId: number | null;
   name: string;
-  id: number | null;
-};
+}
 
-export type LobbyStore = {
+export interface LobbyStore {
   AddToLobby(player: PlayerProp): void;
   RemoveFromLobby(id: number): number;
   EmptyLobby(): void;
   Subscribe(listener: () => void): () => void;
   GetSnapShot(): PlayerProp[];
   ROOM: PlayerProp[];
-};
+}
 
-export type PauseStore = {
+export interface PauseStore {
   PAUSE: boolean;
   GetSnapShot(): boolean;
   Subscribe(listener: () => void): () => void;
   SetPause: (f: boolean) => void;
-};
+}
 
-export type Setting = {
+export interface Setting {
   control: {
     forward: string;
     back: string;
@@ -30,4 +30,22 @@ export type Setting = {
     fov: number;
     sensitivty: number;
   };
-};
+}
+export interface ServerError {
+  error: string;
+}
+export interface LobbyResponse {
+  lobbyId: string;
+  players: PlayerProp[];
+}
+export interface CreateLobbyRequest {
+  playerName: string;
+}
+export interface JoinLobbyRequest {
+  lobbyId: string;
+  playerName: string;
+}
+export interface LeaveLobbyRequest {
+  lobbyId: string;
+  playerName: string;
+}

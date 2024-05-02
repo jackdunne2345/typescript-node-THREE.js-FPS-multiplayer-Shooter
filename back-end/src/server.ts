@@ -1,8 +1,12 @@
 import express, { Request, Response } from "express";
 import { Server as SocketIOServer, Socket } from "socket.io";
-import { Lobby, Player } from "./lobby.js";
+import { LobbyResponse, Player } from "./lobby.js";
+
+import { Lobby } from "./db.js";
+import { Model, Types } from "mongoose";
 
 const app = express();
+app.use(express.json());
 const port = 3000;
 const server = app.listen(port, () => {
   console.log(`Server is running on the port ${port}`);
@@ -25,66 +29,104 @@ app.use((req, res, next) => {
   next();
 });
 
-// Store game lobbies
-const lobbies: Lobby[] = [];
 //find lobby
-function findLobbyById(id: string): Lobby | undefined {
-  return lobbies.find((lobby) => lobby.id === id);
+async function generateLobbyResponse(
+  id: string
+): Promise<LobbyResponse | undefined> {
+  const lobby = await Lobby.findOne({ lobbyId: id });
+  if (lobby) {
+    const returnLobby: LobbyResponse = {
+      lobbyId: lobby.lobbyId,
+      players: [],
+    };
+    lobby.players?.forEach((e) => {
+      const player: Player = { gameId: e.gameId, name: e.name! };
+      returnLobby.players.push(player);
+    });
+    return returnLobby;
+  } else return undefined;
 }
 //add players to the lobby
-function addPlayerToLobby(lobby: Lobby, playerName: string): number {
-  let id = 0;
-  if (lobby.players.length >= 1) {
-    id = lobby.players[lobby.players.length - 1].id! + 1;
-  }
-  const newPlayer: Player = {
-    name: playerName,
-    id: id,
-  };
-  const index = lobbies.indexOf(lobby);
-  lobbies[index].players.push(newPlayer);
-  return newPlayer.id;
+async function addPlayerToLobby(
+  id: string,
+  playerName: string
+): Promise<number | undefined> {
+  const lobby = await Lobby.findOne({ lobbyId: id });
+  if (lobby) {
+    const addedPlayerId = lobby.players?.length;
+    lobby.players?.push({ gameId: addedPlayerId, name: playerName });
+    await lobby.save();
+    return addedPlayerId;
+  } else return undefined;
 }
 
-function removePlayerFromLobby(lobbyId: string, playerId: number): void {
-  const lobby = findLobby(lobbyId);
+async function removePlayerFromLobby(
+  lobbyId: string,
+  playerId: number
+): Promise<void> {
+  const lobby = await Lobby.findOne({ lobbyId: lobbyId });
   if (lobby) {
-    const index = lobby.players.findIndex((player) => player.id === playerId);
-    if (index !== -1) {
-      lobby.players.splice(index, 1);
-    }
+    lobby.players?.pull({ gameId: playerId });
+    await lobby.save();
   }
-}
-export function findLobby(lobbyId: string): Lobby | undefined {
-  return lobbies.find((lobby) => lobby.id === lobbyId);
 }
 
 // Define a route to create a new lobby
-app.post("/create-lobby", (req: Request, res: Response) => {
-  // Create a new lobby with an empty array of players
-  let newLobby: Lobby = {
-    id: lobbies.length + Math.random().toString(36).substr(2, 9),
-    players: [],
-  };
-  lobbies.push(newLobby);
-  let id = newLobby.id;
-  // Send the lobby ID back to the client
-  res.json({ id });
-});
+app.post(
+  "/create-lobby",
+  async (req: Request<String>, res: Response<{ error: string } | string>) => {
+    try {
+      const name: string = req.body.name;
+      console.log("hi " + name);
 
-app.get("/lobbies/:lobbyId", (req: Request, res: Response) => {
+      const newLobby = new Lobby({
+        lobbyId: Math.random().toString(36).substr(2, 9),
+      });
+      await newLobby
+        .save()
+        .then(() => {
+          res.status(201).json(newLobby.lobbyId);
+        })
+        .catch((error) => {
+          if (error.code === 11000) {
+            res
+              .status(201)
+              .json({ error: "create: You are already in a lobby " + error });
+          } else {
+            res.status(201).json({ error: `${error.code}` });
+          }
+        });
+    } catch (error) {
+      console.error("Error creating Lobby:", error);
+      res
+        .status(500)
+        .json({ error: "An error occurred while registering the user" });
+    }
+  }
+);
+// const test = async () => {
+//   const newUser = new Room({
+//     lobbyId: "2",
+//     players: [
+//
+//     ],
+//   });
+//   await newUser.save();
+// };
+// test();
+app.post("/register");
+
+app.get("/lobbies/:lobbyId", async (req: Request, res: Response) => {
   const lobbyId = req.params.lobbyId;
-  let lob = findLobbyById(lobbyId);
-  // Check if the lobbyId exists in the lobbies object
-  if (lob) {
-    // Send the lobby information back to the client
-    res.json({
-      id: lob.id,
-      players: lob.players,
-    });
+  const response: LobbyResponse | undefined = await generateLobbyResponse(
+    lobbyId
+  );
+  if (response) {
+    console.log(`this is the lobby name${response.lobbyId!}`);
+
+    res.status(201).json(response);
   } else {
-    // If the lobbyId doesn't exist, send a 404 Not Found response
-    res.status(404).json({ error: "Lobby not found" });
+    res.status(404).json({ error: "Lobby doesnt exsist" });
   }
 });
 
@@ -92,38 +134,61 @@ app.get("/lobbies/:lobbyId", (req: Request, res: Response) => {
 io.on("connection", (socket: Socket) => {
   console.log("A user connected");
 
-  socket.on("join-lobby", (data: { lobbyId: string; playerName: string }) => {
-    const { lobbyId, playerName } = data;
-    const lobby = findLobbyById(lobbyId);
-    // Check if the lobby exists
-    if (lobby) {
-      // Add the player to the lobby
-      const num = addPlayerToLobby(lobby, playerName);
-      console.log("the player that joined id is" + num + " please emmit it");
-      // Join the Socket.IO room corresponding to the lobby ID
-      socket.join(lobbyId);
-      socket.emit("my-id", { id: num });
-      // Broadcast to all clients in the lobby that a new player has joined
-      io.to(lobbyId).emit("player-joined", { name: playerName, id: num });
-      console.log(`${playerName} joined lobby ${lobbyId}`);
-    } else {
-      // If the lobby doesn't exist, inform the client
-      console.log("6");
-      socket.emit("lobby-not-found", { message: "Lobby not found" });
+  socket.on(
+    "join-lobby",
+    async (data: { lobbyId: string; playerName: string }) => {
+      const { lobbyId, playerName } = data;
+      const lobby = await Lobby.findOne({ lobbyId: lobbyId });
+
+      if (lobby) {
+        const num = lobby!.players!.length;
+        lobby!.players?.push({
+          gameId: num,
+          name: playerName,
+        });
+
+        console.log("the player that joined id is" + num + " please emmit it");
+        // Join the Socket.IO room corresponding to the lobby ID
+        socket.join(lobbyId);
+        socket.emit("my-id", { id: num });
+        // Broadcast to all clients in the lobby that a new player has joined
+        io.to(lobbyId).emit("player-joined", { name: playerName, id: num });
+        console.log(`${playerName} joined lobby ${lobbyId}`);
+        await lobby
+          .save()
+          .then(() => {
+            socket.emit("error", { error: "" });
+          })
+          .catch((error) => {
+            if (error.code === 11000) {
+              socket.emit("error", {
+                error: "join: you are already in a lobby",
+              });
+            } else {
+              socket.emit("error", { error: `${error.code}` });
+            }
+          });
+      } else {
+        console.log("6");
+        socket.emit("error", { error: `lobby not found` });
+      }
     }
-  });
+  );
 
-  socket.on("leave-lobby", (data: { lobbyId: string; playerId: number }) => {
-    const { lobbyId, playerId } = data;
+  socket.on(
+    "leave-lobby",
+    async (data: { lobbyId: string; playerId: number }) => {
+      const { lobbyId, playerId } = data;
 
-    removePlayerFromLobby(lobbyId, playerId);
+      await removePlayerFromLobby(lobbyId, playerId);
+      console.log(`removing player ${playerId}from lobby ${lobbyId}`);
+      socket.leave(lobbyId);
 
-    socket.leave(lobbyId);
+      io.to(lobbyId).emit("player-left", { playerId });
 
-    io.to(lobbyId).emit("player-left", { playerId });
-
-    console.log(`${playerId} left lobby ${lobbyId}`);
-  });
+      console.log(`${playerId} left lobby ${lobbyId}`);
+    }
+  );
 
   socket.on("disconnect", () => {
     console.log("A user disconnected");

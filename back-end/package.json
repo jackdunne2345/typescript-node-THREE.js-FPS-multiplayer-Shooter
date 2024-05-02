@@ -2,7 +2,8 @@
   "name": "back-end",
   "version": "1.0.0",
   "description": "",
-  "main": "./src/server.ts","type": "module",
+  "main": "./src/server.ts",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -11,12 +12,15 @@
   "license": "ISC",
   "devDependencies": {
     "@types/express": "^4.17.21",
+    "@types/mongoose": "^5.11.97",
     "@types/socket.io": "^3.0.2",
-    "typescript": "^5.4.5",
-    "nodemon": "^3.1.0"
+    "nodemon": "^3.1.0",
+    "typescript": "^5.4.5"
   },
   "dependencies": {
     "express": "^4.19.2",
-    "socket.io": "^4.7.5"
+    "mongoose": "^8.3.2",
+    "socket.io": "^4.7.5",
+    "unique-string-generator": "^1.1.1"
   }
 }

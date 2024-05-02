@@ -5,22 +5,32 @@ import { gState } from "./game/State";
 import { Pause } from "./components/Pause";
 import { Settings } from "./components/Settings";
 import { Login } from "./components/Login";
+import { Alert } from "./components/Alerts";
+import { ServerError } from "./game/Types";
 
 const App = () => {
   const createLobby = async () => {
     try {
-      await game.CreateLobby().then((id) => setLobbyId(id));
-      setCurrentState("gameLobby");
+      await game.CreateLobby().then((e) => {
+        console.log(`app component lobby id: ${e}`);
+        if (typeof e === "string") {
+          setLobbyId(e);
+          setCurrentState("gameLobby");
+        } else if (e.error) {
+          setErrors([...errors, e]);
+        }
+      });
     } catch (e) {
       setLobbyId(null);
       console.log("oh no we have an error: " + e);
+      setErrors([...errors, { error: e.message }]);
     }
   };
   const joinLobby = async (id: string) => {
     try {
-      await game.JoinLobby(id!).then((id: string) => {
+      await game.JoinLobby(id!).then(() => {
+        setLobbyId(id!);
         setCurrentState("gameLobby");
-        setLobbyId(id);
       });
     } catch (e) {
       setLobbyId(null);
@@ -28,7 +38,7 @@ const App = () => {
     }
   };
   const [currentState, setCurrentState] = useState<string>("login");
-
+  const [errors, setErrors] = useState<ServerError[]>([]);
   const [search, setSearch] = useState<boolean>(false);
   const [inputValue, setInputValue] = useState<string>("");
   const [hideMenu, setHideMenu] = useState<boolean>(false);
@@ -48,6 +58,7 @@ const App = () => {
 
   return (
     <>
+      {errors?.length > 0 ? <Alert Alerts={errors}></Alert> : <></>}
       {hideMenu && pause && (
         <Pause setPause={setHideMenu} setHome={setCurrentState}></Pause>
       )}

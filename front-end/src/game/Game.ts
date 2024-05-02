@@ -3,8 +3,8 @@ import * as CHARACTERS from "./Characters";
 import { gState } from "./State";
 import { PropAtributes, Stack, Prop } from "./PropStack";
 import { Socket, io } from "socket.io-client";
-import axios from "axios";
-import { PlayerProp } from "./Types";
+import axios, { AxiosResponse } from "axios";
+import { LobbyResponse, PlayerProp, ServerError } from "./Types";
 
 class Game {
   private GAMEWORLD: WORLD.World;
@@ -71,10 +71,10 @@ class Game {
     this.SOCKET = io("http://localhost:3000");
     this.SOCKET.on("player-joined", (data) => {
       console.log("player joined=" + data.name + data.id);
-      const player: PlayerProp = { name: data.name, id: data.id };
+      const player: PlayerProp = { name: data.name, gameId: data.id };
       gState.LOBBY_STORE.AddToLobby(player);
       gState.ROOM.forEach((element: PlayerProp) => {
-        if (element.id !== this.PLAYER.INTERFACE.id) {
+        if (element.gameId !== this.PLAYER.INTERFACE.gameId) {
           const enemyPlayer = new CHARACTERS.EnemyPlayer(element, this.SOCKET);
           enemyPlayer.BODY.position.set(-5, 3, -5);
           this.GAMEWORLD.ENEMIES.push(enemyPlayer);
@@ -83,6 +83,9 @@ class Game {
         }
       });
     });
+    this.SOCKET.on("error", (data) => {
+      console.log(data.error);
+    });
     this.SOCKET.on("player-left", (data) => {
       console.log("player left+ " + data.playerId);
       let id = gState.LOBBY_STORE.RemoveFromLobby(data.playerId);
@@ -90,7 +93,7 @@ class Game {
     });
     this.SOCKET.on("my-id", (data) => {
       console.log("cahnged id" + data.id);
-      this.PLAYER.INTERFACE.id = data.id;
+      this.PLAYER.INTERFACE.gameId = data.id;
     });
     this.CONTROLS = new CHARACTERS.PlayerController(
       this.PLAYER,
@@ -119,22 +122,45 @@ class Game {
     this.CONTROLS.TogleControls();
   }
 
-  async CreateLobby(): Promise<string> {
+  async CreateLobby(): Promise<string | { error: string }> {
+    const requestData = {
+      name: this.PLAYER.INTERFACE.name,
+    };
     try {
-      const response = await axios.post(`${this.SERVER_URL}/create-lobby`);
-      const data: string = JSON.stringify(response.data);
-      console.log("CreateLobby() data returned in http response=" + data);
-      gState.LOBBY_ID = response.data.id;
-      this.PLAYER.INTERFACE.id = 0;
-      await this.JoinLobby(gState.LOBBY_ID!);
+      let retunrnString: string | { error: string } | null = null;
+      await axios
+        .post(`${this.SERVER_URL}/create-lobby`, requestData)
+        .then((response: AxiosResponse<{ error: string }, string>) => {
+          console.log(this.PLAYER.INTERFACE.name + " is creating a lobby");
+          if (response.data.error) {
+            console.log(response.data.error);
+            return response.data;
+          } else if (typeof response.data === "string") {
+            const jsonString: string = JSON.stringify(response.data);
+            const data = jsonString.slice(1, jsonString.length - 1);
+            console.log(
+              "CreateLobby() lobbyId data returned in http response=" + data
+            );
+            gState.LOBBY_ID = data;
+            this.SOCKET.emit("join-lobby", {
+              lobbyId: data,
+              playerName: this.PLAYER.INTERFACE.name,
+            });
+            this.PLAYER.INTERFACE.gameId = 0;
+            gState.LOBBY_ID = data;
+            retunrnString = data;
+          }
+        })
+        .catch((error) => {
+          retunrnString = { error: error.message };
+        });
+      return retunrnString!;
     } catch (error: any) {
       console.error("Error creating lobby:", error.message);
+      return { error: error.message };
     }
-
-    return gState.LOBBY_ID;
   }
-  async JoinLobby(lobbyId: string): Promise<string> {
-    gState.LOBBY_ID = lobbyId;
+  async JoinLobby(lobbyId: string) {
     const Join = async (lobbyId: string) => {
       try {
         const joinData = {
@@ -142,6 +168,7 @@ class Game {
           playerName: this.PLAYER.INTERFACE.name,
         };
         this.SOCKET.emit("join-lobby", joinData);
+        gState.LOBBY_ID = lobbyId;
       } catch (error: any) {
         console.error("Error joining the lobby:", error.message);
       }
@@ -160,6 +187,7 @@ class Game {
 
           playersArray.forEach((element: PlayerProp) => {
             gState.LOBBY_STORE.AddToLobby(element);
+            console.log(element.name + "THIS IS THE PLAYER IN THE LOBY");
           });
         });
       await Join(lobbyId);
@@ -167,14 +195,15 @@ class Game {
       console.error("Error getting lobby information:", error.message);
       throw error;
     }
-    return gState.LOBBY_ID;
   }
+
   LeaveLobby() {
     this.SOCKET.emit("leave-lobby", {
       lobbyId: gState.LOBBY_ID,
-      playerId: this.PLAYER.INTERFACE.id,
+      playerId: this.PLAYER.INTERFACE.gameId,
     });
     gState.LOBBY_STORE.EmptyLobby();
+    console.log(`you left lobby ${gState.LOBBY_ID}`);
     //need to reset the state of the game when this is done
   }
 }

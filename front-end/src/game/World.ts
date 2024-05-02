@@ -90,7 +90,7 @@ export class World {
   }
   RemovePlayer(id: number): void {
     this.ENEMIES.forEach((p) => {
-      if (p.INTERFACE.id === id) {
+      if (p.INTERFACE.gameId === id) {
         console.log("removing player " + id + " from the SCENE/P_WORLD");
         this.SCENE.remove(p.MESH);
         this.P_WORLD.removeBody(p.BODY);

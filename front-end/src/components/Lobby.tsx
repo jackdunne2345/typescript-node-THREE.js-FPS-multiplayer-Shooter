@@ -11,6 +11,7 @@ interface Props {
 }
 
 const Lobby: React.FC<Props> = ({ back, hide, lobbyId, lobby }) => {
+  console.log(`LOBBY COMPONET LOBBY ID ${lobbyId}`);
   return (
     <div className={Styles.host}>
       <div className={Styles.lobbyTop}>
