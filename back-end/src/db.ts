@@ -7,7 +7,7 @@ mongoose
 
 const playerSchema = new mongoose.Schema({
   gameId: { type: Number, required: true },
-  name: { type: String, required: true, unique: true },
+  name: { type: String, required: true },
   kills: { type: Number, required: true, default: 0 },
   deaths: { type: Number, required: true, default: 0 },
 });

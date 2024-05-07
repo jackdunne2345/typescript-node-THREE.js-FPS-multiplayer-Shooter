@@ -5,8 +5,8 @@ import { gState } from "./game/State";
 import { Pause } from "./components/Pause";
 import { Settings } from "./components/Settings";
 import { Login } from "./components/Login";
-import { Alert } from "./components/Alerts";
 import { ServerError } from "./game/Types";
+import { Alert } from "./components/Alerts";
 
 const App = () => {
   const createLobby = async () => {
@@ -18,12 +18,14 @@ const App = () => {
           setCurrentState("gameLobby");
         } else if (e.error) {
           setErrors([...errors, e]);
+          console.log(`this is the errores : ${errors[0]}`);
         }
       });
-    } catch (e) {
+    } catch (e: any) {
       setLobbyId(null);
       console.log("oh no we have an error: " + e);
-      setErrors([...errors, { error: e.message }]);
+
+      console.log(`1 this is the errores : ${e.message}}`);
     }
   };
   const joinLobby = async (id: string) => {
@@ -32,9 +34,11 @@ const App = () => {
         setLobbyId(id!);
         setCurrentState("gameLobby");
       });
-    } catch (e) {
+    } catch (e: any) {
       setLobbyId(null);
       console.log("oh no we have an error: " + e);
+      const error: ServerError = { error: e.message };
+      setErrors([...errors, error]);
     }
   };
   const [currentState, setCurrentState] = useState<string>("login");
@@ -58,7 +62,11 @@ const App = () => {
 
   return (
     <>
-      {errors?.length > 0 ? <Alert Alerts={errors}></Alert> : <></>}
+      {errors.length > 0 ? (
+        <Alert Alerts={errors} setAlerts={setErrors}></Alert>
+      ) : (
+        <></>
+      )}
       {hideMenu && pause && (
         <Pause setPause={setHideMenu} setHome={setCurrentState}></Pause>
       )}

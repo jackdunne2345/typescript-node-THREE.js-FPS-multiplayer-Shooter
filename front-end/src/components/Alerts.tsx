@@ -3,30 +3,34 @@ import Style from "../styles/Alert.module.scss";
 import { ServerError } from "../game/Types";
 type Props = {
   Alerts: ServerError[];
+  setAlerts: React.Dispatch<React.SetStateAction<ServerError[]>>;
 };
 
 export const Alert = (p: Props) => {
-  const [alert, setAlert] = useState<{ error: string } | undefined>();
+  const [alert, setAlert] = useState<ServerError>();
   useEffect(() => {
-    setAlert(p.Alerts.pop());
-  }, []);
+    if (p.Alerts.length > 0) {
+      setAlert(p.Alerts[p.Alerts.length - 1]);
+    }
+  }, [p.Alerts]);
 
   return (
     <>
-      {alert && (
-        <div className={Style.alert}>
-          <div>
-            {alert.error}
-            <button
-              onClick={() => {
-                setAlert(p.Alerts.pop());
-              }}
-            >
-              OK
-            </button>
-          </div>
+      <div className={Style.alert}>
+        <div>
+          {alert?.error}
+          <button
+            onClick={() => {
+              if (p.Alerts.length > 0) {
+                setAlert(p.Alerts[p.Alerts.length - 1]);
+                p.setAlerts(p.Alerts.slice(0, p.Alerts.length - 2));
+              }
+            }}
+          >
+            OK
+          </button>
         </div>
-      )}
+      </div>
     </>
   );
 };
